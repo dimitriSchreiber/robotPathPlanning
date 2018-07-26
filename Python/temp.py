@@ -13,10 +13,13 @@ import os
 import sys
 import numpy as np
 import time
-robot_path = r"C:\Users\snowl\Google Drive\Documents\Research\ARCLAB Arm_\CAD\active\full_arm\arm\subarms\output\urdf\output.urdf"
-robot_path2 = r"C:\Users\snowl\Google Drive\Documents\Research\ARCLAB Arm_\CAD\active\full_arm\arm\subarms\multi.SLDASM\urdf\multi.SLDASM.urdf"
-robot_path3 = r"C:\Users\snowl\Google Drive\Documents\Research\ARCLAB Arm_\CAD\active\full_arm\arm\subarms\asdf\urdf\multi.SLDASM.urdf"
-robot_path4 = r"C:\Users\snowl\out\urdf\works.urdf"
+# robot_path = r"C:\Users\snowl\Google Drive\Documents\Research\ARCLAB Arm_\CAD\active\full_arm\arm\subarms\output\urdf\output.urdf"
+# robot_path2 = r"C:\Users\snowl\Google Drive\Documents\Research\ARCLAB Arm_\CAD\active\full_arm\arm\subarms\multi.SLDASM\urdf\multi.SLDASM.urdf"
+# robot_path3 = r"C:\Users\snowl\Google Drive\Documents\Research\ARCLAB Arm_\CAD\active\full_arm\arm\subarms\asdf\urdf\multi.SLDASM.urdf"
+
+cwd = os.getcwd()
+
+robot_path4 = cwd + '/mri/urdf/mri.urdf'
 
 cid = p.connect(p.SHARED_MEMORY)
 if (cid<0):
@@ -33,8 +36,8 @@ position, orientation = p.getBasePositionAndOrientation(temp) #(x,y,z,w) in quat
 num_joints = p.getNumJoints(temp)
 
 #gets information about joint number 2
-joint_index = 0
-_, name, joint_type, _, _, _, _, _, lower_limit, upper_limit, _, _, _ = \
+joint_index = 2
+_, name, joint_type, _, _, _, _, _, lower_limit, upper_limit, _, _, _ ,_,_,_,_= \
     p.getJointInfo(temp, joint_index)
 name, joint_type, lower_limit, upper_limit
 

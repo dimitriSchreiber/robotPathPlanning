@@ -22,7 +22,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/daniel/Desktop/robotPathPlanning/Python/mri/meshes/base_link.STL" />
+          filename="/home/daniel/Desktop/robotPathPlanning/Python/mri/meshes/base_link_vhacd.stl" />
       </geometry>
       <material
         name="">
@@ -36,7 +36,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/daniel/Desktop/robotPathPlanning/Python/mri/meshes/base_link.STL" />
+          filename="/home/daniel/Desktop/robotPathPlanning/Python/mri/meshes/base_link_vhacd.stl" />
       </geometry>
     </collision>
   </link>
