@@ -14,7 +14,7 @@ from matplotlib.ticker import FuncFormatter
 
 import time
 
-max_x = 1000
+max_x = 5000
 max_rand = 5
 
 positions = []
@@ -22,9 +22,12 @@ rotations = []
 index = 0
 
 
-
+min_y = 10000
+max_y = -10000
 data = deque(np.zeros(max_x), maxlen=max_x)  # hold the last 10 values
 x = np.arange(0, max_x)
+
+fig, ax = plt.subplots()
 
 def init():
     line.set_ydata([np.nan] * len(x))
@@ -46,14 +49,23 @@ def receiveNewFrame( frameNumber, markerSetCount, unlabeledMarkersCount, rigidBo
 
 # This is a callback function that gets connected to the NatNet client. It is called once per rigid body per frame
 def receiveRigidBodyFrame( id, position, rotation ):
-    
+    global max_y
+    global min_y
+
     if id == 1:
        #print( "Received frame for rigid body", id )
         #print("Position: {}, Orientation: {}".format(position,rotation))
         positions.append(position)
         rotations.append(rotation)
         x_pos = position[0]*1000
-        print('x position: {}'.format(x_pos))
+
+        if x_pos > max_y:
+                max_y = x_pos + 10
+        if x_pos < min_y:
+                min_y = x_pos - 10
+
+        ax.set_ylim(min_y, max_y)
+        print('x position: {}, min y: {}, max y: {}'.format(x_pos, min_y, max_y))
         data.append(x_pos)
         '''
         if len(positions > max_x):
@@ -76,11 +88,11 @@ streamingClient.run()
 
 time.sleep(0.5)
 
-fig, ax = plt.subplots()
-ax.set_ylim(-350, -50)
+
+#ax.set_ylim(min_y, max_y)
 ax.set_xlim(0, max_x-1)
 line, = ax.plot(x, np.random.randint(0, max_rand, max_x))
-ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:.1f}s'.format(0.1*(max_x - x - 1))))
+ax.xaxis.set_major_formatter(FuncFormatter(lambda x, pos: '{:.1f}s'.format(0.01*(max_x - x - 1))))
 plt.xlabel('Seconds ago')
 
 ani = animation.FuncAnimation(
