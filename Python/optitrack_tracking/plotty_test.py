@@ -74,6 +74,8 @@ streamingClient.rigidBodyListener = receiveRigidBodyFrame
 
 streamingClient.run()
 
+time.sleep(0.5)
+
 fig, ax = plt.subplots()
 ax.set_ylim(-350, -50)
 ax.set_xlim(0, max_x-1)
