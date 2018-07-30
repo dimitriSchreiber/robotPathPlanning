@@ -1,0 +1,43 @@
+<robot
+  name="peice_of_shit">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.31803811954545 -0.29703172839354 -0.0935093213667964"
+        rpy="0 0 0" />
+      <mass
+        value="3282.85733987993" />
+      <inertia
+        ixx="1068.14319909707"
+        ixy="21.1523215231564"
+        ixz="-11.6693287578101"
+        iyy="689.579906110039"
+        iyz="-87.9435652986677"
+        izz="1358.60972602126" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://peice_of_shit/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://peice_of_shit/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+</robot>

@@ -53,7 +53,7 @@ def receiveRigidBodyFrame( id, position, rotation ):
     global min_y
 
     if id == 1:
-       #print( "Received frame for rigid body", id )
+        #print( "Received frame for rigid body", id )
         #print("Position: {}, Orientation: {}".format(position,rotation))
         positions.append(position)
         rotations.append(rotation)
