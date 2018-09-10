@@ -14,6 +14,7 @@ class robot_config:
         self.config_folder = 'mriArm_config'
 
         # create function dictionaries
+        self._T = {} # for transformation matrices
         self._Tx = {}  # for transform calculations
         self._T_inv = {}  # for inverse transform calculations
         self._J = {}  # for Jacobian calculations
@@ -143,13 +144,14 @@ class robot_config:
 
     def Tq(self, name, q):
         """ Returns euler angles for selected joint """
-        #if self._T.get(name, None) is None:
-        #            print('Generating transform function for %s' % name)
-        #            self._T[name] = self._calc_T(
-        #                name, x=x)
+        if self._T.get(name, None) is None:
+            print('Generating transform function for %s' % name)
+            self._T[name] = self._calc_T(
+                name, lambdify = True)
 
-        transform_mat = self._calc_T(name, lambdify = True)
-        quat = t3d.quaternions.mat2quat(transform_mat(*tuple(q))[:3,:3]) #w, x, y, z,
+
+        #transform_mat = self._calc_T(name, lambdify = True)
+        quat = t3d.quaternions.mat2quat(self._T[name](*tuple(q))[:3,:3]) #w, x, y, z, #t3d should be fast, the _calc_T I think is the slow part... 
         quat = np.roll(quat, -1)
         return quat
 
@@ -159,9 +161,12 @@ class robot_config:
         #            print('Generating transform function for %s' % name)
         #            self._T[name] = self._calc_T(
         #                name, x=x)
+        if self._T.get(name, None) is None:
+            print('Generating transform function for %s' % name)
+            self._T[name] = self._calc_T(
+                name, lambdify = True)
 
-        transform_mat = self._calc_T(name, lambdify = True)
-        a, b, g = t3d.euler.mat2euler(transform_mat(*tuple(q))[:3,:3]) #w, x, y, z,
+        a, b, g = t3d.euler.mat2euler(self._T[name](*tuple(q))[:3,:3]) #w, x, y, z,
         return np.array([a,b,g])
 
     def forwardKinPos(self, q, x=[0, 0, 0]):

@@ -1,5 +1,6 @@
 from forwardKinematics import robot_config
 import numpy as np
+import time
 pi = np.pi
 #q = [-pi/2, pi/2, -pi/2, 20]
 q = np.array([0., 0., 0., 0.])
@@ -14,7 +15,11 @@ print("Joint angles/positions {}".format(q))
 #print(xyz.shape)
 #print(type(xyz))
 # calculate the Jacobian for the end effector
-JEE = myRobot.J('j4', q)
+s = time.time()
+for i in range(1000):
+	JEE = myRobot.J('j4', q)
+dt = time.time()-s
+print(dt/1000)
 print("analytic jacobian: \n{}".format(JEE))
 
 def calculateJacobian(q, num_joints = 4, dx = 1e-5):
@@ -34,14 +39,28 @@ def calculateJacobian(q, num_joints = 4, dx = 1e-5):
 
 	return jacobian
 
-JEE_numerical = calculateJacobian(q)
+s = time.time()
+for i in range(1000):
+	JEE_numerical = calculateJacobian(q)
+dt = time.time()-s
+print(dt/1000)
 print("numeric jacobian: \n{}".format(JEE_numerical))
 
 
-positions = myRobot.forwardKinPos(q)
+s = time.time()
+for i in range(1000):
+	positions = myRobot.forwardKinPos(q)
+dt = time.time()-s
+print(dt/1000)
 print(positions)
 
 #J_orientation = myRobot._calc_T('j1', lambdify = True)
 #print(J_orientation(*tuple(q)))
 
-print(myRobot.forwardKinOrientation(q))
+s = time.time()
+for i in range(1000):
+	orientation = myRobot.forwardKinOrientation(q)
+dt = time.time()-s
+print(dt/1000)
+print(orientation)
+
