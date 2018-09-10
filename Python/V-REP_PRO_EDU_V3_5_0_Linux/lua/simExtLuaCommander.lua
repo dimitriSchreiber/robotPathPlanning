@@ -1,3 +1,0 @@
-local simLuaCmd={}
-
-return simLuaCmd
