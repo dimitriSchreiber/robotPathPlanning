@@ -8,8 +8,7 @@ import time
 import os
 import socket
 from copy import deepcopy
-from getRobotPose import getOptitrackPose
-
+from getRobotPose import *
 #---------------------------------------------
 #motor imports
 #---------------------------------------------
@@ -74,8 +73,8 @@ pi = np.pi
 myRobot = robot_config()
 
 #robot joint positions
-q = [pi/8, pi/8, pi/8, 0.001*pi/8]
-
+#q = [pi/8, pi/8, pi/8, 0]
+q = [0, 0, 0, 0]
 
 #---------------------------------------------
 #vrep setup
@@ -131,141 +130,136 @@ try:
         count = 0
 
         #initialize forward kinematics
-        goal_orientations = np.zeros((n_poses, 4))
-        goal_orientations[0,-1] = 1
-        goal_positions = np.zeros((n_poses, 3))
-        goal_positions[1:,:] = myRobot.forwardKinPos(q) * 20
-        goal_orientations[1:,:] = myRobot.forwardKinOrientation(q)
+        fk_orientations = np.zeros((n_poses, 4))
+        fk_orientations[0,-1] = 1
+        fk_positions = np.zeros((n_poses, 3))
+        fk_positions[1:,:] = myRobot.forwardKinPos(q) * 20
+        fk_orientations[1:,:] = myRobot.forwardKinOrientation(q)
 
         #to check loop time:
         start_time_loop = time.time()
 
-        while count < 1:
+        while count < 20:
             #for loop timer sleep at the end to make true "dt" loop time
             start_time = time.time()
-
-            s = time.time()
-
-            #---------------------------------------------
-            #get Optitrak data, 4ms block
-            #---------------------------------------------
-
-
-            #this block takes 1ms
-            track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
-            current_frame = track_data.frame
-            base = track_data.bodies[0].homogenous_mat
-            base_inv = track_data.bodies[0].homg_inv
-            joint2 = track_data.bodies[1].homogenous_mat
-            joint2_inv = track_data.bodies[1].homg_inv
-            joint3 = track_data.bodies[2].homogenous_mat
-            joint3_inv = track_data.bodies[2].homg_inv
-            joint4 = track_data.bodies[3].homogenous_mat
-            joint4_inv = track_data.bodies[3].homg_inv
-            target = track_data.bodies[4].homogenous_mat
-
-            #this block take 0.8ms
-            joint2_base, j2b_pos, j2b_euler, _ = track_data.homg_mat_mult(base_inv,joint2) #joint2 in base frame -> moves only in base Y+X axis
-            joint3_base, j3b_pos, j3b_euler, _ = track_data.homg_mat_mult(base_inv,joint3) #joint3 in base frame
-            joint4_base, j4b_pos, j4b_euler, _ = track_data.homg_mat_mult(base_inv,joint4) #joint4 in base frame
-
-            #this block takes 1ms
-            joint2_base_quat = t3d.quaternions.mat2quat(joint2_base[:3,:3])
-            joint3_base_quat = t3d.quaternions.mat2quat(joint3_base[:3,:3])
-            joint4_base_quat = t3d.quaternions.mat2quat(joint4_base[:3,:3])
-            joint2_base_quat = np.roll(joint2_base_quat, -1)
-            joint3_base_quat = np.roll(joint3_base_quat, -1)
-            joint4_base_quat = np.roll(joint4_base_quat, -1)
-
-
-
-            #this block take 0.7ms
-            optitrak_joint_base_positions = np.array([goal_positions[0], j2b_pos, j2b_pos, j3b_pos, j4b_pos]) * 2 # 2x multiplier --> uses dm units length
-            optitrak_joint_base_positions[:,0] += 0#0.1 #0.1m translation in x
-            optitrak_joint_base_quats = np.array([goal_orientations[0], joint2_base_quat, joint2_base_quat, joint3_base_quat, joint4_base_quat])
-            joint3_joint2, j3j2_pos, j3j2_euler, _ = track_data.homg_mat_mult(joint2_inv,joint3)
-            joint4_joint3, j4j3_pos, j4j3_euler, _ = track_data.homg_mat_mult(joint3_inv,joint4)
-            target_joint4, targetj4_pos, targetj4_euler, _ = track_data.homg_mat_mult(joint4_inv,target)
-
-
-            #---------------------------------------------
-            #update joint angle goal using IK, 2ms block
-            #---------------------------------------------
-            #TODO, for now static
-
-            q = q
-
-            goal_positions[1:,:] = myRobot.forwardKinPos(q) * 20 #20 for consistent visualizing  --> uses m units length
-            goal_orientations[1:,:] = myRobot.forwardKinOrientation(q)
-
-            
-
-
-            #---------------------------------------------
-            #calculate jacobian update, 0.35ms block
-            #---------------------------------------------
-            JEE = myRobot.J('j4', q)
-            
-            #---------------------------------------------
-            #update joint angle controller setpoint
-            #---------------------------------------------
-            #TODO w/ daniels code
 
 
             #---------------------------------------------
             #update vrep display, 0.7ms block
             #---------------------------------------------
-            # j1_frame_pos = vrep.simxGetObjectPosition(
-            #             clientID,
-            #             pose_handles[0],
-            #             -1, #absolute not relative position
-            #             vrep.simx_opmode_blocking)
-            #print("goal pos: {}".format(goal_positions))
+
+            if count > 0:
+                # j1_frame_pos = vrep.simxGetObjectPosition(
+                #             clientID,
+                #             pose_handles[0],
+                #             -1, #absolute not relative position
+                #             vrep.simx_opmode_blocking)
+                #print("goal pos: {}".format(fk_positions))
 
 
-            # Set position of the target
-            for i in range(n_poses):
-                vrep.simxSetObjectPosition(
-                    clientID,
-                    pose_handles[i],
-                    -1,# Setting the absolute position
-                    position=goal_positions[i],
-                    operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                    )
+                # Set position of the target
+                for i in range(n_poses):
+                    vrep.simxSetObjectPosition(
+                        clientID,
+                        pose_handles[i],
+                        -1,# Setting the absolute position
+                        position=fk_positions[i],
+                        operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
+                        )
 
-                vrep.simxSetObjectPosition(
-                    clientID,
-                    robot_pose_handles[i],
-                    -1,# Setting the absolute position
-                    position=optitrak_joint_base_positions[i],
-                    operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                    )
+                    vrep.simxSetObjectPosition(
+                        clientID,
+                        robot_pose_handles[i],
+                        -1,# Setting the absolute position
+                        position=optitrak_joint_base_positions[i],
+                        operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
+                        )
 
-                vrep.simxSetObjectQuaternion(
-                    clientID,
-                    pose_handles[i],
-                    -1,
-                    goal_orientations[i], #(x, y, z, w)
-                    operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                    )
+                    vrep.simxSetObjectQuaternion(
+                        clientID,
+                        pose_handles[i],
+                        -1,
+                        fk_orientations[i], #(x, y, z, w)
+                        operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
+                        )
 
-                vrep.simxSetObjectQuaternion(
-                    clientID,
-                    robot_pose_handles[i],
-                    -1,
-                    optitrak_joint_base_quats[i], #(x, y, z, w)
-                    operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                    )
-
-            print(time.time()-s)
+                    vrep.simxSetObjectQuaternion(
+                        clientID,
+                        robot_pose_handles[i],
+                        -1,
+                        optitrak_joint_base_quats[i], #(x, y, z, w)
+                        operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
+                        )
+   
             #---------------------------------------------
-            # move simulation ahead one time step, was 15ms with synchronous, 0ms with asynchronous block
+            #update joint angle goal using IK, 2ms block
             #---------------------------------------------
-            #vrep.simxSynchronousTrigger(clientID)
-            count += dt
+            #TODO, for now static
+            q = q
+
+            #for visualization
+            fk_positions[1:,:] = myRobot.forwardKinPos(q) * 20 #20 for consistent visualizing  --> uses m units length
+            fk_orientations[1:,:] = myRobot.forwardKinOrientation(q)
+            
+
+            #---------------------------------------------
+            #get Optitrak data, 4ms block
+            #---------------------------------------------
+            track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
+            
+            optitrak_joint_base_positions, optitrak_joint_base_quats = getOptitrakVis(track_data, fk_positions, fk_orientations)
+            j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
+            
+            #!!!! this possibly has errors, likely is correct. !!!!
+            q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]])
+
+
+            
+            #---------------------------------------------
+            #calculate jacobian update, 0.35ms block
+            #---------------------------------------------
+            print('\n q: {}\n q optitrak: {}\n optitrak EE base positions: {}\n fk EE base positions: {}'
+                .format(q, q_optitrak, optitrak_joint_base_positions[-1, :], fk_positions[-1, :]))
+
+            JEE_optitrak = myRobot.J('j4', q_optitrak)
+            JEE = myRobot.J('j4', q)
+            JEE_optitrak_inv = np.linalg.pinv(JEE_optitrak[:3, :])
+            EE_position_optitrak = optitrak_joint_base_positions[-1, :]
+            EE_position_fk = fk_positions[-1, :]
+            K = np.array([0.1, 0.1, 0.1])
+            joint_angle_update = np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * K) * dt
+
+            print(joint_angle_update)
+            #invert jacobian matrix, multiply by end effector error versus FK times K gain matrix? look in my notebook.
+
+            #!!!!!!!!need to do this control code!!!!!!
+
+
+            #---------------------------------------------
+            #perform joint angle control
+            #---------------------------------------------
+            #calculates forward kinematic homogeneous matrices
+            #fk_homogenous = myRobot.forwardKinHomogenous(q)
+            #calculates forward kinematic homogeneous matrix inverses
+            #fk_homogenous_inv = myRobot.forwardKinHomogenous(q, inverse = True)
 
             while dt - (time.time() - start_time) > 0:
+
+
+                #---------------------------------------------
+                #update joint angle controller setpoint, takes in q+joint_angle_update, q_optitrak
+                #---------------------------------------------
+
+                #DANIELS CONTROL FUNCTION
+
+
+                track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
+                j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
+                q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]])
+
                 time.sleep(0.001)
+
+            count += dt #for outer loop timekeeping
             #time.sleep(max(dt - difference, 0))
 
         end_time_loop = time.time()

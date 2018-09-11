@@ -64,3 +64,8 @@ dt = time.time()-s
 print(dt/1000)
 print(orientation)
 
+s = time.time()
+for i in range(1000):
+	print(myRobot.forwardKinHomogenous(q))
+dt = time.time()-s
+print(dt/1000)

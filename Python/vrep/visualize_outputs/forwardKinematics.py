@@ -128,6 +128,15 @@ class robot_config:
         parameters = tuple(q) + tuple(x)
         return np.array(self._J[name](*parameters))
 
+    def T(self, name, q):
+        ''' Calculates transform matrix, rather than point'''
+        if self._T.get(name, None) is None:
+            print('Generating transform function for %s' % name)
+            self._T[name] = self._calc_T(
+                name, lambdify = True)
+
+        return self._T[name](*tuple(q))
+
     def Tx(self, name, q, x=[0, 0, 0]):
         """ Calculates the transform for a joint or link
         name string: name of the joint or link, or end-effector
@@ -182,6 +191,16 @@ class robot_config:
             quat = self.Tq(joint, q)
             orientations.append(quat)
         return np.asarray(orientations)
+
+    def forwardKinHomogenous(self, q, inverse = False):
+        homogenous = []
+        for joint in self.joint_names:
+            if not inverse:
+                hom = self.T(joint, q)
+            else:
+                hom = self.T_inv(joint, q)
+            homogenous.append(hom)
+        return homogenous
 
     def T_inv(self, name, q, x=[0, 0, 0]):
         """ Calculates the inverse transform for a joint or link
