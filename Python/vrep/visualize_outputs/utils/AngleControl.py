@@ -47,7 +47,7 @@ MC.zero_arm()
 
 class MotorControl():
 
-	def __init__(self,P ,I ,D, joint_motor_indexes, control_freq = 20): #gain values for joint level control
+	def __init__(self,P ,PL ,I ,D, joint_motor_indexes, control_freq = 20): #gain values for joint level control
 		#Constants
 		self.encoder_counts = 1440
 		self.gear_ratio = 470
@@ -57,6 +57,7 @@ class MotorControl():
 
 		#Values passed in
 		self.P = P
+		self.PL = PL
 		self.I = I
 		self.D = D
 		self.joint_motor_indexes = joint_motor_indexes
@@ -125,38 +126,39 @@ class MotorControl():
 
 			time.sleep(0.05)
 
-		zero_position = deepcopy(motor_command)
+		self.zero_position = deepcopy(motor_command)
 
 
-	def update(current_angles, angle_setpoints):
+	def update(self, current_angles, angle_setpoints):
 		#returns a flag that indicates if the update was run or not
+		counter = 0
 		self.current_time = time.time()
 
+		error = angle_setpoints - current_angles
+		arm_angles_signal = np.zeros([4,1])
+
 		if self.current_time - self.time_last_run >= 1/self.control_freq:
+			arm_angles_signal[0] = angle_setpoints[0] - error[0] * self.P
+			arm_angles_signal[1] = angle_setpoints[1] - error[1] * self.P
+			arm_angles_signal[2] = angle_setpoints[2] - error[2] * self.P
+			arm_angles_signal[3] = angle_setpoints[3] - error[3] * self.PL
 
+			motor_angle_setpoints = MotorArmMixing(arm_angles_signal) #4x1 matrix return
 
+			self.motor_command[self.joint_motor_indexes[0]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[0,0] * self.counts_per_radian
+			self.motor_command[self.joint_motor_indexes[1]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[1,0] * self.counts_per_radian * -1
+			self.motor_command[self.joint_motor_indexes[2]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[2,0] * self.counts_per_radian * -1
+			self.motor_command[self.joint_motor_indexes[3]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[3,0] * self.counts_per_radian
 
-			angle_setpoints = MotorArmMixing(arm_angles) #4x1 matrix return
-
-#need to convert from joint angle to motor encoder setpoints
-#setpoints in homg mats
-
-			j1_setpoint #radians around x
-			j2_setpoint #radians aroudn y
-			j3_setpoint #radians around y
-			j4_setpoint #position in meters off of z
-
-
-
-			for i in range(len(joint_motor_indexes))
-				self.motor_command[joint_motor_indexes[i]] = angle_setpoints[i]
-
-
-
-			self.motor_command[joint_motor_indexes[0]] = angle_setpoints[0]
-			self.motor_command[joint_motor_indexes[1]] = angle_setpoints[1]
-			self.motor_command[joint_motor_indexes[2]] = angle_setpoints[2]
-			self.motor_command[joint_motor_indexes[3]] = angle_setpoints[3]
+			#for i in range(len(joint_motor_indexes))
+			#	self.motor_command[joint_motor_indexes[i]] = self.zero_position + motor_angle_setpoints[i] * self.counts_per_radian
+			if counter % 10 == 0:
+				print("ERROR", error)
+				print("setpoints", angle_setpoints)
+				print(self.motor_command)
+			
+			counter = counter + 1
+			self.motors.command_motors(self.motor_command)
 
 			self.time_last_run = self.current_time
 			update = 1
