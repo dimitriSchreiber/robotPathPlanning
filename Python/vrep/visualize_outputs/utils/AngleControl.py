@@ -135,20 +135,20 @@ class MotorControl():
 		self.current_time = time.time()
 
 		error = angle_setpoints - current_angles
-		arm_angles_signal = np.zeros([4,1])
+		arm_angles_signal = np.zeros((4,1))
 
 		if self.current_time - self.time_last_run >= 1/self.control_freq:
-			arm_angles_signal[0] = angle_setpoints[0] - error[0] * self.P
-			arm_angles_signal[1] = angle_setpoints[1] - error[1] * self.P
-			arm_angles_signal[2] = angle_setpoints[2] - error[2] * self.P
-			arm_angles_signal[3] = angle_setpoints[3] - error[3] * self.PL
+			arm_angles_signal[0] = angle_setpoints[0] + error[0] * self.P
+			arm_angles_signal[1] = angle_setpoints[1] + error[1] * self.P
+			arm_angles_signal[2] = angle_setpoints[2] + error[2] * self.P
+			arm_angles_signal[3] = angle_setpoints[3] + error[3] * self.PL
 
 			motor_angle_setpoints = MotorArmMixing(arm_angles_signal) #4x1 matrix return
 
 			self.motor_command[self.joint_motor_indexes[0]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[0,0] * self.counts_per_radian
-			self.motor_command[self.joint_motor_indexes[1]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[1,0] * self.counts_per_radian * -1
-			self.motor_command[self.joint_motor_indexes[2]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[2,0] * self.counts_per_radian * -1
-			self.motor_command[self.joint_motor_indexes[3]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[3,0] * self.counts_per_radian
+			self.motor_command[self.joint_motor_indexes[1]] = self.zero_position[self.joint_motor_indexes[1]] + motor_angle_setpoints[1,0] * self.counts_per_radian * -1
+			self.motor_command[self.joint_motor_indexes[2]] = self.zero_position[self.joint_motor_indexes[2]] + motor_angle_setpoints[2,0] * self.counts_per_radian * -1
+			self.motor_command[self.joint_motor_indexes[3]] = self.zero_position[self.joint_motor_indexes[3]] + motor_angle_setpoints[3,0] * self.counts_per_radian
 
 			#for i in range(len(joint_motor_indexes))
 			#	self.motor_command[joint_motor_indexes[i]] = self.zero_position + motor_angle_setpoints[i] * self.counts_per_radian
