@@ -12,7 +12,7 @@ from copy import deepcopy
 
 
 class motors():
-	def __init__(self, CLIENT_SOCKET, dt, step_size, degrees_count_motor, degrees_count_motor_joint, PRINT_SENSORS, results_dir = None):
+	def __init__(self, CLIENT_SOCKET, dt, step_size, degrees_count_motor, degrees_count_motor_joint, PRINT_SENSORS = 0, results_dir = None):
 
 		#Declaring class variables
 		self.dt = dt 													#time step
