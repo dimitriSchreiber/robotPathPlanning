@@ -35,6 +35,7 @@ multicastAddress = "239.255.42.99"
 print_trak_data = False
 optitrack_joint_names = ['base', 'j2', 'j3', 'j4', 'target']
 ids = [0, 1, 2, 3, 4]
+
 #debug values
 print_cartesian = False
 save_data = False
@@ -61,12 +62,16 @@ old_frame = track_data.frame
 def calculate_sine(dt, count, hz, amplitude):
     return np.sin(count/dt*(2*pi)*hz)*amplitude
 
-
+# On Shutdown
+def shutDown_vrep():
+    vrep.simxStopSimulation(clientID, vrep.simx_opmode_blocking)
+    vrep.simxFinish(clientID)
 
 #---------------------------------------------
 #constants
 #---------------------------------------------
 pi = np.pi
+#TCP addresses
 socket_ip = '192.168.1.39'
 socket_port = 1122
 
@@ -77,7 +82,7 @@ myRobot = robot_config()
 
 #robot joint positions
 #q = [pi/8, pi/8, pi/8, 0]
-q = np.array([pi/32., 0., 0., 0.])
+q = np.array([0, 0., 0., 0.])
 joint_angle_update_Kp = np.zeros(4)
 joint_angle_update_Ki = np.zeros(4)
 
@@ -89,11 +94,6 @@ pose_names = ['pose_origin', 'pose_j1', 'pose_j2', 'pose_j3', 'pose_j4']
 robot_pose_names = ['robot_origin', 'robot_j1', 'robot_j2', 'robot_j3', 'robot_j4', 'target']
 n_poses = len(pose_names)
 
-# On Shutdown
-def shutDown_vrep():
-    vrep.simxStopSimulation(clientID, vrep.simx_opmode_blocking)
-    vrep.simxFinish(clientID)
-
 #---------------------------------------------
 #main loop
 #---------------------------------------------
@@ -104,12 +104,12 @@ try:
     #motor control init
     #---------------------------------------------
  
-    P=0.5
+    P=0.25
     PL=0
     I=0
     D = 0
 
-    joint_motor_indexes = [0,1,2,3]
+    joint_motor_indexes = [0,1,2,3] #which motors are used to control the arm in order of joints
 
     MC = MotorControl(P, PL ,I,D,joint_motor_indexes, control_freq = 20)
     MC.tcp_init(socket_ip, socket_port)
@@ -119,9 +119,8 @@ try:
     MC.motors.arm()
     time.sleep(2)
 
+    #Zeros the arm to home position
     MC.zero_arm(track_data, NatNet)
-
-
 
     # close any open connections
     vrep.simxFinish(-1)
@@ -159,7 +158,7 @@ try:
         count = 0
 
         #initialize forward kinematics
-        fk_orientations = np.zeros((n_poses, 4))
+        fk_orientations = np.zeros((n_poses, 4)) #4 for quat
         fk_orientations[0,-1] = 1
         fk_positions = np.zeros((n_poses, 3))
         fk_positions[1:,:] = myRobot.forwardKinPos(q) * 20
@@ -270,8 +269,8 @@ try:
             JEE_optitrak_inv = np.linalg.pinv(JEE_optitrak[:3, :])
             EE_position_optitrak = optitrak_joint_base_positions[n_poses-1, :]
             EE_position_fk = fk_positions[n_poses-1, :]
-            Kp = np.array([0.2, 0.2, 0.2])*0.1#*0.01 #0.1 is for I #* 10
-            Ki = np.array([0.05, 0.05, 0.05])*dt*10
+            Kp = np.array([0.2, 0.2, 0.2])*0.05#*0.01 #0.1 is for I #* 10
+            Ki = np.array([0.05, 0.05, 0.05])*dt*5
 
             EE_position_fk = optitrak_joint_base_positions[-1]
             joint_angle_update_Kp = np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Kp)# * dt
@@ -309,6 +308,7 @@ try:
                 #arm_joint_command[3] = arm_joint_command[3] * 1000# + 75
 
                 MC.update(arm_joint_command, arm_joint_command)
+                
                 track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
                 j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
                 q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]])

@@ -110,13 +110,13 @@ class MotorControl():
 			# motor_command[self.joint_motor_indexes[3]] += motor_counts[3]
 
 			if np.abs(j1_angle) > 1:
-				motor_command[self.joint_motor_indexes[0]] += -1* j1_angle * self.counts_per_degree * k
+				motor_command[self.joint_motor_indexes[0]] += int(-1* j1_angle * self.counts_per_degree * k)
 			elif np.abs(j2_angle) > 1:
-				motor_command[self.joint_motor_indexes[1]] += j2_angle * self.counts_per_degree * k
+				motor_command[self.joint_motor_indexes[1]] += int(j2_angle * self.counts_per_degree * k)
 			elif np.abs(j3_angle) > 1:
-				motor_command[self.joint_motor_indexes[2]] += j3_angle * self.counts_per_degree * k
+				motor_command[self.joint_motor_indexes[2]] += int(j3_angle * self.counts_per_degree * k)
 			elif np.abs(j4_pos - 175) > 0.2:
-				motor_command[self.joint_motor_indexes[3]] += -1* (j4_pos-175) * self.counts_per_degree * kl
+				motor_command[self.joint_motor_indexes[3]] += int(-1* (j4_pos-175) * self.counts_per_degree * kl)
 			error_cum = np.abs(j1_angle) + np.abs(j2_angle) + np.abs(j3_angle)
 
 			print("Current joint positions: \n j1: {}\n j2: {}\n j3: {}\n j4: {}\n".format(j1_angle, j2_angle, j3_angle, j4_pos))
