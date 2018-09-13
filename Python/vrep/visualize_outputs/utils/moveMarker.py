@@ -299,8 +299,6 @@ try:
                 #---------------------------------------------
 
                 #DANIELS CONTROL FUNCTION
-                #MC.update(joint_angle_update + q, joint_angle_update + q)
-
                 #arm_offset = np.array([0., 0., 0., 75])
                 arm_joint_command = q.copy() + joint_angle_update_Kp + joint_angle_update_Ki
                 #arm_joint_command[:3] += joint_angle_update[:3]
@@ -308,7 +306,7 @@ try:
                 #arm_joint_command[3] = arm_joint_command[3] * 1000# + 75
 
                 MC.update(arm_joint_command, arm_joint_command)
-                
+
                 track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
                 j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
                 q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]])
