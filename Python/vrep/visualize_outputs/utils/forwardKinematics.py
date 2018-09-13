@@ -31,7 +31,7 @@ class robot_config:
 
         self.joint_names = ['j1', 'j2', 'j3', 'j4']
 
-        self.linear_offsets = [0.0080, 0.0080, 0.0075]
+        self.linear_offsets = [0.0080, 0.0080, 0.0175]
         #static offset from origin to joint 0
         self.Torg1_static = sp.Matrix([
             [1, 0, 0, 0],
@@ -89,8 +89,8 @@ class robot_config:
 
         # transform matrix from joint 3 to joint 4
         self.T34 = sp.Matrix([
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
+            [1, 0, 0, 0+0.0012],
+            [0, 1, 0, 0-0.0005],
             [0, 0, 1, self.q[3]],
             [0, 0, 0, 1]])
 

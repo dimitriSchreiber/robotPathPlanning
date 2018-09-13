@@ -48,12 +48,14 @@ def getOptitrakVis(track_data, goal_positions, goal_orientations):
 	joint2_base, j2b_pos, j2b_euler, joint2_base_quat = track_data.homg_mat_mult(base_inv,joint2) #joint2 in base frame -> moves only in base Y+X axis
 	joint3_base, j3b_pos, j3b_euler, joint3_base_quat = track_data.homg_mat_mult(base_inv,joint3) #joint3 in base frame
 	joint4_base, j4b_pos, j4b_euler, joint4_base_quat = track_data.homg_mat_mult(base_inv,joint4) #joint4 in base frame
+	target_base, jtb_pos, jtb_euler, target_base_quat = track_data.homg_mat_mult(base_inv,target)
 	joint2_base_quat = np.roll(joint2_base_quat, -1)
 	joint3_base_quat = np.roll(joint3_base_quat, -1)
 	joint4_base_quat = np.roll(joint4_base_quat, -1)
-	optitrak_joint_base_positions = np.array([goal_positions[0], j2b_pos, j2b_pos, j3b_pos, j4b_pos]) * 2 # 2x multiplier --> uses m units length
+	target_base_quat = np.roll(target_base_quat, -1)
+	optitrak_joint_base_positions = np.array([goal_positions[0], j2b_pos, j2b_pos, j3b_pos, j4b_pos, jtb_pos]) * 2 # 2x multiplier --> uses m units length
 	optitrak_joint_base_positions[:,0] += 0#0.1 #0.1m translation in x
-	optitrak_joint_base_quats = np.array([goal_orientations[0], joint2_base_quat, joint2_base_quat, joint3_base_quat, joint4_base_quat])
+	optitrak_joint_base_quats = np.array([goal_orientations[0], joint2_base_quat, joint2_base_quat, joint3_base_quat, joint4_base_quat, target_base_quat])
 
 	return optitrak_joint_base_positions, optitrak_joint_base_quats
 

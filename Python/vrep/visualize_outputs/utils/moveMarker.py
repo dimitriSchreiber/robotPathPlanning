@@ -86,7 +86,7 @@ joint_angle_update_Ki = np.zeros(4)
 #vrep setup
 #---------------------------------------------
 pose_names = ['pose_origin', 'pose_j1', 'pose_j2', 'pose_j3', 'pose_j4']
-robot_pose_names = ['robot_origin', 'robot_j1', 'robot_j2', 'robot_j3', 'robot_j4']
+robot_pose_names = ['robot_origin', 'robot_j1', 'robot_j2', 'robot_j3', 'robot_j4', 'target']
 n_poses = len(pose_names)
 
 # On Shutdown
@@ -168,7 +168,7 @@ try:
         #to check loop time:
         start_time_loop = time.time()
 
-        while count < 100:
+        while count < 1000:
             #for loop timer sleep at the end to make true "dt" loop time
             start_time = time.time()
 
@@ -220,6 +220,21 @@ try:
                         operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
                         )
    
+                vrep.simxSetObjectPosition(
+                    clientID,
+                    robot_pose_handles[-1],
+                    -1,# Setting the absolute position
+                    position=optitrak_joint_base_positions[-1],
+                    operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
+                    )
+
+                vrep.simxSetObjectQuaternion(
+                    clientID,
+                    robot_pose_handles[-1],
+                    -1,
+                    optitrak_joint_base_quats[-1], #(x, y, z, w)
+                    operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
+                    )
             #---------------------------------------------
             #update joint angle goal using IK, 2ms block
             #---------------------------------------------
@@ -253,10 +268,12 @@ try:
             JEE_optitrak = myRobot.J('j4', q_optitrak)
             JEE = myRobot.J('j4', q)
             JEE_optitrak_inv = np.linalg.pinv(JEE_optitrak[:3, :])
-            EE_position_optitrak = optitrak_joint_base_positions[-1, :]
-            EE_position_fk = fk_positions[-1, :]
+            EE_position_optitrak = optitrak_joint_base_positions[n_poses-1, :]
+            EE_position_fk = fk_positions[n_poses-1, :]
             Kp = np.array([0.2, 0.2, 0.2])*0.1#*0.01 #0.1 is for I #* 10
             Ki = np.array([0.05, 0.05, 0.05])*dt*10
+
+            EE_position_fk = optitrak_joint_base_positions[-1]
             joint_angle_update_Kp = np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Kp)# * dt
             joint_angle_update_Ki += np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Ki)
 
@@ -288,7 +305,7 @@ try:
                 #arm_offset = np.array([0., 0., 0., 75])
                 arm_joint_command = q.copy() + joint_angle_update_Kp + joint_angle_update_Ki
                 #arm_joint_command[:3] += joint_angle_update[:3]
-                arm_joint_command[3] += arm_joint_command[3]*1000
+                arm_joint_command[3] = arm_joint_command[3]*1000
                 #arm_joint_command[3] = arm_joint_command[3] * 1000# + 75
 
                 MC.update(arm_joint_command, arm_joint_command)

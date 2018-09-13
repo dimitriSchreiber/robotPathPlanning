@@ -99,7 +99,7 @@ class MotorControl():
 		#---------------------------------------#---------------------------------------
 		j1_angle, j2_angle, j3_angle, j4_pos, joint4_base, j4b_pos, j4b_euler = getOptitrackPose(track_data, NatNet)
 
-		while np.abs(j1_angle) > 1 or np.abs(j2_angle) > 1 or np.abs(j3_angle) > 1 or np.abs(j4_pos - 75) > 0.2:
+		while np.abs(j1_angle) > 1 or np.abs(j2_angle) > 1 or np.abs(j3_angle) > 1 or np.abs(j4_pos - 175) > 0.2:
 
 			j1_angle, j2_angle, j3_angle, j4_pos, joint4_base, j4b_pos, j4b_euler = getOptitrackPose(track_data, NatNet)
 			#motor_counts = MotorArmMixing(np.array(j1_angle, j2_angle, j3_angle, j4_pos)[:,None] * np.pi/180) * self.counts_per_radian
@@ -115,8 +115,8 @@ class MotorControl():
 				motor_command[self.joint_motor_indexes[1]] += j2_angle * self.counts_per_degree * k
 			elif np.abs(j3_angle) > 1:
 				motor_command[self.joint_motor_indexes[2]] += j3_angle * self.counts_per_degree * k
-			elif np.abs(j4_pos - 75) > 0.2:
-				motor_command[self.joint_motor_indexes[3]] += -1* (j4_pos-75) * self.counts_per_degree * kl
+			elif np.abs(j4_pos - 175) > 0.2:
+				motor_command[self.joint_motor_indexes[3]] += -1* (j4_pos-175) * self.counts_per_degree * kl
 			error_cum = np.abs(j1_angle) + np.abs(j2_angle) + np.abs(j3_angle)
 
 			print("Current joint positions: \n j1: {}\n j2: {}\n j3: {}\n j4: {}\n".format(j1_angle, j2_angle, j3_angle, j4_pos))
