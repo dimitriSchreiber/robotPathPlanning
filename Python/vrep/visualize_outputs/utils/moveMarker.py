@@ -107,11 +107,12 @@ try:
     P=0.25
     PL=0
     I=0
+    IL=0
     D = 0
 
     joint_motor_indexes = [0,1,2,3] #which motors are used to control the arm in order of joints
 
-    MC = MotorControl(P, PL ,I,D,joint_motor_indexes, control_freq = 20)
+    MC = MotorControl(P, PL ,I, IL, D,joint_motor_indexes, control_freq = 20)
     MC.tcp_init(socket_ip, socket_port)
     MC.motor_init()
     
@@ -120,7 +121,7 @@ try:
     time.sleep(2)
 
     #Zeros the arm to home position
-    MC.zero_arm(track_data, NatNet)
+    #MC.zero_arm(track_data, NatNet)
 
     # close any open connections
     vrep.simxFinish(-1)

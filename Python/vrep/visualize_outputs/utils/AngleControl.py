@@ -47,7 +47,7 @@ MC.zero_arm()
 
 class MotorControl():
 
-	def __init__(self,P ,PL ,I ,D, joint_motor_indexes, control_freq = 20): #gain values for joint level control
+	def __init__(self,P ,PL ,I, IL ,D, joint_motor_indexes, control_freq = 20): #gain values for joint level control
 		#Constants
 		self.encoder_counts = 1440
 		self.gear_ratio = 470
@@ -58,8 +58,10 @@ class MotorControl():
 		#Values passed in
 		self.P = P
 		self.PL = PL
+		self.IL = IL
 		self.I = I
 		self.D = D
+		self.error_cum = 0
 		self.joint_motor_indexes = joint_motor_indexes
 		self.motor_command = np.zeros(8)
 		self.control_freq = control_freq
@@ -140,29 +142,36 @@ class MotorControl():
 		arm_angles_signal = np.zeros((4,1))
 
 		if self.current_time - self.time_last_run >= 1/self.control_freq:
-			arm_angles_signal[0] = angle_setpoints[0] + error[0] * self.P
-			arm_angles_signal[1] = angle_setpoints[1] + error[1] * self.P
-			arm_angles_signal[2] = angle_setpoints[2] + error[2] * self.P
-			arm_angles_signal[3] = angle_setpoints[3] + error[3] * self.PL
+			dt = self.current_time - self.time_last_run
+			self.error_cum = error * dt + self.error_cum
+			arm_angles_signal[0] = angle_setpoints[0] + error[0] * self.P + self.error_cum[0] * self.I
+			arm_angles_signal[1] = angle_setpoints[1] + error[1] * self.P + self.error_cum[1] * self.I
+			arm_angles_signal[2] = angle_setpoints[2] + error[2] * self.P + self.error_cum[2] * self.I
+			arm_angles_signal[3] = angle_setpoints[3] + error[3] * self.PL + self.error_cum[3] * self.IL
 
 			motor_angle_setpoints = MotorArmMixing(arm_angles_signal) #4x1 matrix return
 
-			self.motor_command[self.joint_motor_indexes[0]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[0,0] * self.counts_per_radian
-			self.motor_command[self.joint_motor_indexes[1]] = self.zero_position[self.joint_motor_indexes[1]] + motor_angle_setpoints[1,0] * self.counts_per_radian * -1
-			self.motor_command[self.joint_motor_indexes[2]] = self.zero_position[self.joint_motor_indexes[2]] + motor_angle_setpoints[2,0] * self.counts_per_radian * -1
-			self.motor_command[self.joint_motor_indexes[3]] = self.zero_position[self.joint_motor_indexes[3]] + motor_angle_setpoints[3,0] * self.counts_per_radian
+			self.motor_command[self.joint_motor_indexes[0]] = self.zero_position[self.joint_motor_indexes[0]] + motor_angle_setpoints[0] * self.counts_per_radian
+			self.motor_command[self.joint_motor_indexes[1]] = self.zero_position[self.joint_motor_indexes[1]] + motor_angle_setpoints[1] * self.counts_per_radian * -1
+			self.motor_command[self.joint_motor_indexes[2]] = self.zero_position[self.joint_motor_indexes[2]] + motor_angle_setpoints[2] * self.counts_per_radian * -1
+			self.motor_command[self.joint_motor_indexes[3]] = self.zero_position[self.joint_motor_indexes[3]] + motor_angle_setpoints[3] * self.counts_per_radian
 
 			#for i in range(len(joint_motor_indexes))
 			#	self.motor_command[joint_motor_indexes[i]] = self.zero_position + motor_angle_setpoints[i] * self.counts_per_radian
-			if print_data and counter % 100 == 0:
+			if print_data and counter % 1000 == 0:
 				#Converting to degrees
+				# print("ERROR", error)
+				# print("setpoints", angle_setpoints)
+				# print("current angles", current_angles)
+				# print(self.motor_command)
 				print("ERROR", np.append(error[0:-1] * 180/np.pi, error[-1]))
+				print("cum error for I", self.error_cum)
 				print("setpoints", np.append(angle_setpoints[0:-1] * 180/np.pi, angle_setpoints[-1]))
 				print("current angles", np.append(current_angles[0:-1] * 180/np.pi, current_angles[-1]))
-				print(self.motor_command)
+				print("\n", self.motor_command.astype(int))
 			
 			counter = counter + 1
-			self.motors.command_motors(self.motor_command)
+			self.motors.command_motors(self.motor_command.astype(int))
 
 			self.time_last_run = self.current_time
 			update = 1

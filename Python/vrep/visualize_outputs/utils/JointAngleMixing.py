@@ -1,5 +1,5 @@
 #Motor arm mixing, accounts for coupling in motion of each degree of freedom
-#Wants radians?
+#Wants radians and mm?
 import numpy as np
 
 def MotorArmMixing(armTheta): #armTheta is a 4x1 angle input for desired arm configuration
