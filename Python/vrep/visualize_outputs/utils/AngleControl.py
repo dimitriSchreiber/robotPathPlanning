@@ -79,6 +79,12 @@ class MotorControl():
 		if IsWindows:
 			self.tcp.setpriority()
 
+	def tcp_close(self):
+		data = ('b'+ 'stop' +'d')
+		self.my_socket.send(data.encode())
+		self.my_socket.shutdown(socket.SHUT_RDWR)
+		self.my_socket.close()
+
 	def motor_init(self, dt=0.01): #dt is only used for the internal sine function for motor testing
 		self.motors = motors(CLIENT_SOCKET = self.my_socket, dt = dt, step_size = 100, degrees_count_motor = 1./self.counts_per_revolution, degrees_count_motor_joint = 1)
 		self.motors.read_buff() 						#c side sends out initial stored encoder positions, grabs them
@@ -94,6 +100,7 @@ class MotorControl():
 		k = 0.025
 		kl = 0.1
 		motor_command = deepcopy(self.zero_position)
+
 		#---------------------------------------#---------------------------------------
 		#Zeroing loop                           #---------------------------------------
 		#---------------------------------------#---------------------------------------
@@ -102,12 +109,6 @@ class MotorControl():
 		while np.abs(j1_angle) > 1 or np.abs(j2_angle) > 1 or np.abs(j3_angle) > 1 or np.abs(j4_pos - 175) > 0.2:
 
 			j1_angle, j2_angle, j3_angle, j4_pos, joint4_base, j4b_pos, j4b_euler = getOptitrackPose(track_data, NatNet)
-			#motor_counts = MotorArmMixing(np.array(j1_angle, j2_angle, j3_angle, j4_pos)[:,None] * np.pi/180) * self.counts_per_radian
-
-			# motor_command[self.joint_motor_indexes[0]] += motor_counts[0]
-			# motor_command[self.joint_motor_indexes[1]] += motor_counts[1] * -1 # -1 to align motor axis with tracker
-			# motor_command[self.joint_motor_indexes[2]] += motor_counts[2] * -1 # -1 to align motor axis with tracker
-			# motor_command[self.joint_motor_indexes[3]] += motor_counts[3]
 
 			if np.abs(j1_angle) > 1:
 				motor_command[self.joint_motor_indexes[0]] += int(-1* j1_angle * self.counts_per_degree * k)
@@ -129,7 +130,8 @@ class MotorControl():
 		self.zero_position = deepcopy(motor_command)
 
 
-	def update(self, current_angles, angle_setpoints):
+	def update(self, current_angles, angle_setpoints, print_data=False):
+		#Radians
 		#returns a flag that indicates if the update was run or not
 		counter = 0
 		self.current_time = time.time()
@@ -152,9 +154,11 @@ class MotorControl():
 
 			#for i in range(len(joint_motor_indexes))
 			#	self.motor_command[joint_motor_indexes[i]] = self.zero_position + motor_angle_setpoints[i] * self.counts_per_radian
-			if counter % 10 == 0:
-				print("ERROR", error)
-				print("setpoints", angle_setpoints)
+			if print_data and counter % 100 == 0:
+				#Converting to degrees
+				print("ERROR", np.append(error[0:-1] * 180/np.pi, error[-1]))
+				print("setpoints", np.append(angle_setpoints[0:-1] * 180/np.pi, angle_setpoints[-1]))
+				print("current angles", np.append(current_angles[0:-1] * 180/np.pi, current_angles[-1]))
 				print(self.motor_command)
 			
 			counter = counter + 1

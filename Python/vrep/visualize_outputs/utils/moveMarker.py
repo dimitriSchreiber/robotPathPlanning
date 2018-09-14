@@ -306,6 +306,7 @@ try:
                 #arm_joint_command[3] = arm_joint_command[3] * 1000# + 75
 
                 MC.update(arm_joint_command, arm_joint_command)
+                #MC.update(q_optitrak, arm_joint_command)
 
                 track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
                 j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
