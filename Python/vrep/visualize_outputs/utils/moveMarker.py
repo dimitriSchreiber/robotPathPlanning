@@ -121,7 +121,7 @@ try:
     time.sleep(2)
 
     #Zeros the arm to home position
-    #MC.zero_arm(track_data, NatNet)
+    MC.zero_arm(track_data, NatNet)
 
     # close any open connections
     vrep.simxFinish(-1)
@@ -258,7 +258,15 @@ try:
             q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]])
 
 
-            
+            #gets the top left target marker???!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            target_base_homogeneous, targetbase_pos = getOptitrakTargetBaseHomogenous(track_data)
+            point_shift = np.array([[1, 0, 0, 0.02654],[0, 1, 0, 0.0334],[0, 0, 1, -0.01],[0, 0, 0, 1]])#.reshape((4,1))
+            #point_shift = np.eye(4)
+            _, target_1_position, _, _ = track_data.homg_mat_mult(target_base_homogeneous, point_shift)
+            target_1_position = target_1_position * 2
+            #point_shift = np.array([0, 0, 0, 1]).reshape((4,1))
+            #target_1_position = np.matmul(target_base_homogeneous, point_shift).squeeze()[:3]
+            #print(target_1_position)
             #---------------------------------------------
             #calculate jacobian update, 0.35ms block
             #---------------------------------------------
@@ -268,12 +276,21 @@ try:
             JEE_optitrak = myRobot.J('j4', q_optitrak)
             JEE = myRobot.J('j4', q)
             JEE_optitrak_inv = np.linalg.pinv(JEE_optitrak[:3, :])
+
             EE_position_optitrak = optitrak_joint_base_positions[n_poses-1, :]
             EE_position_fk = fk_positions[n_poses-1, :]
+
             Kp = np.array([0.2, 0.2, 0.2])*0.05#*0.01 #0.1 is for I #* 10
             Ki = np.array([0.05, 0.05, 0.05])*dt*5
 
+            #this line makes it track the target!!!!
             EE_position_fk = optitrak_joint_base_positions[-1]
+
+            print("Target position: {}, target tl marker position: {}".format(optitrak_joint_base_positions[-1], target_1_position))#target_1_position))
+
+            #this makes it stab the top left marker!
+            EE_position_fk = target_1_position
+
             joint_angle_update_Kp = np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Kp)# * dt
             joint_angle_update_Ki += np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Ki)
 
@@ -307,6 +324,7 @@ try:
                 #arm_joint_command[3] = arm_joint_command[3] * 1000# + 75
 
                 MC.update(arm_joint_command, arm_joint_command)
+
                 #MC.update(q_optitrak, arm_joint_command)
 
                 track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used

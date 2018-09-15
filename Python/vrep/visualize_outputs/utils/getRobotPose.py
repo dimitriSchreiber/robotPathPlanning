@@ -78,3 +78,16 @@ def getOptitrakControl(track_data):
 	target_joint4, targetj4_pos, targetj4_euler, _ = track_data.homg_mat_mult(joint4_inv,target) 
 
 	return j2b_euler, j3j2_euler, j4j3_pos
+
+def getOptitrakTargetBaseHomogenous(track_data):
+	#for jacobian and joint angle control
+	base = track_data.bodies[0].homogenous_mat
+	target = track_data.bodies[4].homogenous_mat
+
+	base_inv = track_data.bodies[0].homg_inv
+
+	target_base, targetbase_pos, targetbaseeuler, _ = track_data.homg_mat_mult(base_inv,target) 
+
+	return target_base, targetbase_pos * 2
+
+	
