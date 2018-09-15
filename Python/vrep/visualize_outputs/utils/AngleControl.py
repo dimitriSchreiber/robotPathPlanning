@@ -54,6 +54,7 @@ class MotorControl():
 		self.counts_per_revolution = self.gear_ratio * self.encoder_counts
 		self.counts_per_radian = self.counts_per_revolution / (2 * np.pi)
 		self.counts_per_degree = self.counts_per_revolution / 360
+		self.counter = 0
 
 		#Values passed in
 		self.P = P
@@ -132,16 +133,16 @@ class MotorControl():
 		self.zero_position = deepcopy(motor_command)
 
 
-	def update(self, current_angles, angle_setpoints, print_data=False):
+	def update(self, current_angles, angle_setpoints, trajectory = None, print_data=False):
 		#Radians
 		#returns a flag that indicates if the update was run or not
-		counter = 0
 		self.current_time = time.time()
 
 		error = angle_setpoints - current_angles
 		arm_angles_signal = np.zeros((4,1))
 
 		if self.current_time - self.time_last_run >= 1/self.control_freq:
+
 			dt = self.current_time - self.time_last_run
 			self.error_cum = error * dt + self.error_cum
 			arm_angles_signal[0] = angle_setpoints[0] + error[0] * self.P + self.error_cum[0] * self.I
@@ -158,7 +159,7 @@ class MotorControl():
 
 			#for i in range(len(joint_motor_indexes))
 			#	self.motor_command[joint_motor_indexes[i]] = self.zero_position + motor_angle_setpoints[i] * self.counts_per_radian
-			if print_data and counter % 1000 == 0:
+			if print_data and self.counter % 2 == 0:
 				#Converting to degrees
 				# print("ERROR", error)
 				# print("setpoints", angle_setpoints)
@@ -168,9 +169,10 @@ class MotorControl():
 				print("cum error for I", self.error_cum)
 				print("setpoints", np.append(angle_setpoints[0:-1] * 180/np.pi, angle_setpoints[-1]))
 				print("current angles", np.append(current_angles[0:-1] * 180/np.pi, current_angles[-1]))
-				print("\n", self.motor_command.astype(int))
+				print(self.motor_command.astype(int))
+				print("\n")
 			
-			counter = counter + 1
+			self.counter = self.counter + 1
 			self.motors.command_motors(self.motor_command.astype(int))
 
 			self.time_last_run = self.current_time
