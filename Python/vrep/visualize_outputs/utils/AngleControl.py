@@ -47,7 +47,7 @@ MC.zero_arm()
 
 class MotorControl():
 
-	def __init__(self,P ,PL ,I, IL ,D, joint_motor_indexes, control_freq = 20): #gain values for joint level control
+	def __init__(self,P ,PL ,I, IL ,D, joint_motor_indexes, control_freq = 50): #gain values for joint level control
 		#Constants
 		self.encoder_counts = 1440
 		self.gear_ratio = 470
@@ -159,7 +159,7 @@ class MotorControl():
 
 			#for i in range(len(joint_motor_indexes))
 			#	self.motor_command[joint_motor_indexes[i]] = self.zero_position + motor_angle_setpoints[i] * self.counts_per_radian
-			if print_data and self.counter % 2 == 0:
+			if print_data and self.counter % 100 == 0:
 				#Converting to degrees
 				# print("ERROR", error)
 				# print("setpoints", angle_setpoints)

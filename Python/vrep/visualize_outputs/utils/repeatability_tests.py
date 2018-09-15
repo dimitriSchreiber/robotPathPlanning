@@ -36,7 +36,7 @@ PI = np.pi
 NUM_TESTS = 1
 #TCP addresses
 socket_ip = '192.168.1.39'
-socket_port = 1123
+socket_port = 1122
 
 #---------------------------------------------
 #optitrak setup
@@ -85,15 +85,15 @@ pose_names = ['pose_origin', 'pose_j1', 'pose_j2', 'pose_j3', 'pose_j4']
 robot_pose_names = ['robot_origin', 'robot_j1', 'robot_j2', 'robot_j3', 'robot_j4', 'target']
 n_poses = len(pose_names)
 
-P=0.5
-PL=0.2
-I=0.1
-IL = 0.01
+P=0.5#5#0.1#2.3
+PL=0#0.2
+I=1#0.1
+IL = 0#0.01
 D = 0
 
 joint_motor_indexes = [0,1,2,3] #which motors are used to control the arm in order of joints
 
-MC = MotorControl(P, PL ,I, IL, D,joint_motor_indexes, control_freq = 20)
+MC = MotorControl(P, PL ,I, IL, D,joint_motor_indexes)
 MC.tcp_init(socket_ip, socket_port)
 MC.motor_init()
 
@@ -102,7 +102,7 @@ MC.motors.arm()
 time.sleep(2)
 
 #SET target angles/position here
-arm_angles_deg = np.array((5,5,5, 0)) 
+arm_angles_deg = np.array((-15,5,5, 0)) 
 arm_angles_rads = degs2rads(arm_angles_deg) #rads, rads, rads, meters for q
 
 EE_position_fk = myRobot.Tx('EE', arm_angles_rads) * 10 # is the scaling factor for units
@@ -119,6 +119,8 @@ two_norm_data_pos = []
 two_norm_data_orientation = []
 two_norm_data_both = []
 norms = []
+time_list = []
+optitrak_list = []
 
 trajPlanner = trajectoryGenerator()
 
@@ -146,11 +148,12 @@ for i in range(NUM_TESTS):
 	#---------------------------------------------
 
 	#FLorians stuff
-	period = 1.0/20.0 # 20 Hz
-	rates = [PI/180, PI/180, PI/180, 0.1]
+	period = 1.0/50.0 # 20 Hz
+	rates = np.array([PI/180, PI/180, PI/180, 0.1])*0.5
 	trajectories, tracjectory_time = trajPlanner.creatTrajectoryMaxVelocity(q_optitrak, arm_angles_rads, rates, period)
 
-	trajPlanner.plotTrajectory(trajectories, tracjectory_time)
+
+	#trajPlanner.plotTrajectory(trajectories, tracjectory_time)
 
 
 	for j in range(0, trajectories.shape[0]):
@@ -164,11 +167,19 @@ for i in range(NUM_TESTS):
 
 	start_time = time.time()
 
-	while np.amax(np.abs(arm_angles_deg - rads2degs(q_optitrak))) > 0.5: #looking at difference in DEGREES
+	time_diff = 0
+	old_time= time.time()
+
+	while np.amax(np.abs(arm_angles_deg - rads2degs(q_optitrak))) > 0.5 and (time_diff) < 2 * tracjectory_time[-1]: #looking at difference in DEGREES
 
 		#---------------------------------------------
 		#get Optitrak data, 4ms block
 		#---------------------------------------------
+
+		if time.time() - old_time > 0.5:
+			print("total trajectory time: {}, current trajectory time: {}".format(tracjectory_time[-1], time_diff))
+			old_time = time.time()
+
 		track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
 
 		#For getting end effector position from optitrak -> check the units of this
@@ -176,15 +187,14 @@ for i in range(NUM_TESTS):
 		joint4 = track_data.bodies[3].homogenous_mat
 		_, EE_position_optitrak, EE_orientation_optitrak, _ = track_data.homg_mat_mult(base_inv,joint4) #joint4 in base frame
 
+
 		#For getting joint angles from optitrak
 		j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
 		q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]]) #euler
 
 		#MC.update(q_optitrak, arm_angles_rads, print_data = True) #make sure values are in rads and mm?
-		time_diff = start_time - time.time()
-		index = np.argmin(tracjectory_time - time_diff)
-		print(time_diff)
-		print(index)
+		time_diff = time.time() - start_time
+		index = np.argmin(np.abs(tracjectory_time - time_diff))
 		traj_arm_angles = np.array((trajectories[0,index], trajectories[1,index], trajectories[2,index], trajectories[3,index]))
 
 		MC.update(q_optitrak, traj_arm_angles, print_data = True)
@@ -196,7 +206,7 @@ for i in range(NUM_TESTS):
 		# print(EE_position_fk)
 		# print(np.linalg.norm(EE_position_optitrak - EE_position_fk))
 
-		two_norm_data_orientation.append(np.linalg.norm(EE_orientation_optitrak - EE_orientation_fk))
+		two_norm_data_orientation.append(np.linalg.norm(EE_orientation_optitrak - EE_orientation_fk)) #FIX LATER
 		# print(EE_orientation_optitrak)
 		# print(EE_orientation_fk)
 		# print(np.linalg.norm(EE_orientation_optitrak - EE_orientation_fk))
@@ -209,7 +219,10 @@ for i in range(NUM_TESTS):
 		counter = counter + 1
 		#print("ERROR VALUEs", (arm_angles_deg - rads2degs(q_optitrak)))
 
-		time.sleep(0.001)
+		time_list.append(time_diff)
+		optitrak_list.append(EE_position_optitrak)
+
+		time.sleep(0.01)
 
 	final_traverse_data.append(traverse_data)
 	#Getting open end effector stats for repeatability
@@ -217,6 +230,10 @@ for i in range(NUM_TESTS):
 	#Accuracy stats, 2 norm of xyz components compared to FK, and 2 norm of RPY components compared to FK
 
 	norms.append([two_norm_data_pos, two_norm_data_orientation, two_norm_data_both])
+
+	time.sleep(0.5)
+
+	MC.update(np.array([0,0,0,0]), np.array([0,0,0,0]), print_data = True)
 
 #Repeatability
 EE_xs_trak = []
@@ -255,6 +272,14 @@ plt.savefig('norm_data.png')
 plt.show()
 
 
+#Double check...
+plt.figure()
+for i in range(3):
+	plt.subplot(1,3,i+1)
+	plt.plot(1000*np.array(optitrak_list)[:,i], 'g')
+	plt.plot(1000*np.ones(len(optitrak_list))*EE_position_fk[i], 'r')
+plt.show()
+
 
 
 
@@ -279,20 +304,23 @@ for data in traverse_data:
 	EE_y.append(data[1][1])
 	EE_z.append(data[1][2])
 
+
 print("plotting")
+print(arm_angles_deg)
 time.sleep(1)
 plt.subplot(2,2,1)
-plt.plot(j1)
-plt.plot(trajectories[0,:])
+plt.plot(time_list, j1)
+plt.plot(tracjectory_time, trajectories[0,:] * 180 / np.pi)
 plt.subplot(2,2,2)
-plt.plot(j2)
-plt.plot(trajectories[1,:])
+plt.plot(time_list, j2)
+plt.plot(tracjectory_time, trajectories[1,:] * 180 / np.pi)
 plt.subplot(2,2,3)
-plt.plot(j3)
-plt.plot(trajectories[2,:])
+plt.plot(time_list, j3)
+plt.plot(tracjectory_time, trajectories[2,:] * 180 / np.pi)
 plt.subplot(2,2,4)
-plt.plot(j4)
-plt.plot(trajectories[3,:])
+plt.plot(time_list, j4)
+plt.plot(tracjectory_time, trajectories[3,:] * 1000)
+plt.title("this is what we want!")
 plt.savefig('traverse_data_plot.png')
 plt.show()
 
