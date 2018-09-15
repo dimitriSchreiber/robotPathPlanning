@@ -117,7 +117,6 @@ try:
     I=0
     IL=0
     D = 0
-
     joint_motor_indexes = [0,1,2,3] #which motors are used to control the arm in order of joints
 
     MC = MotorControl(P, PL ,I, IL, D,joint_motor_indexes, control_freq = 20)
@@ -208,8 +207,7 @@ try:
             track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
             optitrak_joint_base_positions, optitrak_joint_base_quats = getOptitrakVis(track_data, fk_positions, fk_orientations)
             j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
-                        q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]]) #!!!! this possibly has errors, likely is correct. !!!!
-
+            q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]]) #!!!! this possibly has errors, likely is correct. !!!!
 
 
             #gets the top left target marker
@@ -250,7 +248,7 @@ try:
             joint_angle_update_Ki += np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Ki)
 
             #print(joint_angle_update_Kp)
-            $print(joint_angle_update_Ki)
+            #print(joint_angle_update_Ki)
 
 
 
@@ -284,6 +282,13 @@ try:
             count += dt #for outer loop timekeeping
 
         end_time_loop = time.time()
+
+        time.sleep(0.1)
+        arm_joint_command[3] = 0
+        MC.update(arm_joint_command, arm_joint_command)
+        time.sleep(2)
+        MC.update(np.array([0,0,0,0]),np.array([0,0,0,0]))
+        time.sleep(2)
 
         # stop the simulation
         vrep.simxStopSimulation(clientID, vrep.simx_opmode_blocking)

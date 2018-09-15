@@ -109,9 +109,22 @@ class MotorControl():
 		#---------------------------------------#---------------------------------------
 		j1_angle, j2_angle, j3_angle, j4_pos, joint4_base, j4b_pos, j4b_euler = getOptitrackPose(track_data, NatNet)
 
+		retractFlag = 0
+
 		while np.abs(j1_angle) > 1 or np.abs(j2_angle) > 1 or np.abs(j3_angle) > 1 or np.abs(j4_pos - 175) > 0.2:
 
 			j1_angle, j2_angle, j3_angle, j4_pos, joint4_base, j4b_pos, j4b_euler = getOptitrackPose(track_data, NatNet)
+
+			if retractFlag == 0:
+				while np.abs(j4_pos - 175) > 0.2:
+					motor_command[self.joint_motor_indexes[3]] += int(-1* (j4_pos-175) * self.counts_per_degree * kl)
+					self.motors.command_motors(motor_command)
+					print("Current joint positions: \n j1: {}\n j2: {}\n j3: {}\n j4: {}\n".format(j1_angle, j2_angle, j3_angle, j4_pos))
+					print("Motor command: {}".format(motor_command))
+					j1_angle, j2_angle, j3_angle, j4_pos, joint4_base, j4b_pos, j4b_euler = getOptitrackPose(track_data, NatNet)
+					time.sleep(0.05)
+
+				retractFlag = 1
 
 			if np.abs(j1_angle) > 1:
 				motor_command[self.joint_motor_indexes[0]] += int(-1* j1_angle * self.counts_per_degree * k)
