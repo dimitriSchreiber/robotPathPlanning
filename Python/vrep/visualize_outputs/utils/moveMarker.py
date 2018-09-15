@@ -1,3 +1,7 @@
+#************************************************************************************************
+#imports
+#************************************************************************************************
+
 #---------------------------------------------
 #vrep imports
 #---------------------------------------------
@@ -26,6 +30,10 @@ from GetJointData import data, NatNetFuncs#receiveNewFrame, receiveRigidBodyFram
 from NatNetClient2 import NatNetClient
 from AngleControl import MotorControl
 
+
+#************************************************************************************************
+#setup and initialization
+#************************************************************************************************
 
 #---------------------------------------------
 #optitrak setup
@@ -95,7 +103,7 @@ robot_pose_names = ['robot_origin', 'robot_j1', 'robot_j2', 'robot_j3', 'robot_j
 n_poses = len(pose_names)
 
 #---------------------------------------------
-#main loop
+#try except
 #---------------------------------------------
 
 try:
@@ -168,73 +176,21 @@ try:
         #to check loop time:
         start_time_loop = time.time()
 
-        while count < 1000:
+
+        #************************************************************************************************
+		#main loop
+		#************************************************************************************************
+        while time.time() - start_time_loop < 60:
+
             #for loop timer sleep at the end to make true "dt" loop time
             start_time = time.time()
-
 
             #---------------------------------------------
             #update vrep display, 0.7ms block
             #---------------------------------------------
-
             if count > 0:
-                # j1_frame_pos = vrep.simxGetObjectPosition(
-                #             clientID,
-                #             pose_handles[0],
-                #             -1, #absolute not relative position
-                #             vrep.simx_opmode_blocking)
-                #print("goal pos: {}".format(fk_positions))
+                setVrepPoses(n_poses, clientID, optitrak_joint_base_positions, optitrak_joint_base_quats, fk_positions, fk_orientations, robot_pose_handles, pose_handles)
 
-
-                # Set position of the target
-                for i in range(n_poses):
-                    vrep.simxSetObjectPosition(
-                        clientID,
-                        pose_handles[i],
-                        -1,# Setting the absolute position
-                        position=fk_positions[i],
-                        operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                        )
-
-                    vrep.simxSetObjectPosition(
-                        clientID,
-                        robot_pose_handles[i],
-                        -1,# Setting the absolute position
-                        position=optitrak_joint_base_positions[i],
-                        operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                        )
-
-                    vrep.simxSetObjectQuaternion(
-                        clientID,
-                        pose_handles[i],
-                        -1,
-                        fk_orientations[i], #(x, y, z, w)
-                        operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                        )
-
-                    vrep.simxSetObjectQuaternion(
-                        clientID,
-                        robot_pose_handles[i],
-                        -1,
-                        optitrak_joint_base_quats[i], #(x, y, z, w)
-                        operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                        )
-   
-                vrep.simxSetObjectPosition(
-                    clientID,
-                    robot_pose_handles[-1],
-                    -1,# Setting the absolute position
-                    position=optitrak_joint_base_positions[-1],
-                    operationMode=vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                    )
-
-                vrep.simxSetObjectQuaternion(
-                    clientID,
-                    robot_pose_handles[-1],
-                    -1,
-                    optitrak_joint_base_quats[-1], #(x, y, z, w)
-                    operationMode = vrep.simx_opmode_oneshot#vrep.simx_opmode_blocking
-                    )
             #---------------------------------------------
             #update joint angle goal using IK, 2ms block
             #---------------------------------------------
@@ -250,23 +206,22 @@ try:
             #get Optitrak data, 4ms block
             #---------------------------------------------
             track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and data that is being used
-            
             optitrak_joint_base_positions, optitrak_joint_base_quats = getOptitrakVis(track_data, fk_positions, fk_orientations)
             j2b_euler, j3j2_euler, j4j3_pos,  = getOptitrakControl(track_data)
-            
-            #!!!! this possibly has errors, likely is correct. !!!!
-            q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]])
+                        q_optitrak = np.array([j2b_euler[0], j2b_euler[1], j3j2_euler[1], j4j3_pos[2]]) #!!!! this possibly has errors, likely is correct. !!!!
 
 
-            #gets the top left target marker???!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+            #gets the top left target marker
             target_base_homogeneous, targetbase_pos = getOptitrakTargetBaseHomogenous(track_data)
             point_shift = np.array([[1, 0, 0, 0.02654],[0, 1, 0, 0.0334],[0, 0, 1, -0.01],[0, 0, 0, 1]])#.reshape((4,1))
-            #point_shift = np.eye(4)
             _, target_1_position, _, _ = track_data.homg_mat_mult(target_base_homogeneous, point_shift)
             target_1_position = target_1_position * 2
             #point_shift = np.array([0, 0, 0, 1]).reshape((4,1))
             #target_1_position = np.matmul(target_base_homogeneous, point_shift).squeeze()[:3]
             #print(target_1_position)
+
+
             #---------------------------------------------
             #calculate jacobian update, 0.35ms block
             #---------------------------------------------
@@ -294,11 +249,9 @@ try:
             joint_angle_update_Kp = np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Kp)# * dt
             joint_angle_update_Ki += np.matmul(JEE_optitrak_inv,(EE_position_fk - EE_position_optitrak) * Ki)
 
-            print(joint_angle_update_Kp)
-            print(joint_angle_update_Ki)
-            #invert jacobian matrix, multiply by end effector error versus FK times K gain matrix? look in my notebook.
+            #print(joint_angle_update_Kp)
+            $print(joint_angle_update_Ki)
 
-            #!!!!!!!!need to do this control code!!!!!!
 
 
             #---------------------------------------------
@@ -315,13 +268,8 @@ try:
                 #---------------------------------------------
                 #update joint angle controller setpoint, takes in q+joint_angle_update, q_optitrak
                 #---------------------------------------------
-
-                #DANIELS CONTROL FUNCTION
-                #arm_offset = np.array([0., 0., 0., 75])
                 arm_joint_command = q.copy() + joint_angle_update_Kp + joint_angle_update_Ki
-                #arm_joint_command[:3] += joint_angle_update[:3]
                 arm_joint_command[3] = arm_joint_command[3]*1000
-                #arm_joint_command[3] = arm_joint_command[3] * 1000# + 75
 
                 MC.update(arm_joint_command, arm_joint_command)
 
@@ -334,17 +282,14 @@ try:
                 time.sleep(0.001)
 
             count += dt #for outer loop timekeeping
-            #time.sleep(max(dt - difference, 0))
 
         end_time_loop = time.time()
 
         # stop the simulation
         vrep.simxStopSimulation(clientID, vrep.simx_opmode_blocking)
-
         # Before closing the connection to V-REP,
         #make sure that the last command sent out had time to arrive.
         vrep.simxGetPingTime(clientID)
-
         # Now close the connection to V-REP:
         vrep.simxFinish(clientID)
 
