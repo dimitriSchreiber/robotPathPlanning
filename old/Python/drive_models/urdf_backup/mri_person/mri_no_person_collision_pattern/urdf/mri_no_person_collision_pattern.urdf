@@ -1,0 +1,43 @@
+<robot
+  name="mri_no_person_collision_pattern">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.0581632879362901 -0.172648971046961 -0.106048016915093"
+        rpy="0 0 0" />
+      <mass
+        value="46.358656237348" />
+      <inertia
+        ixx="6.74023573375755"
+        ixy="0.00590724765498782"
+        ixz="-0.205277419488155"
+        iyy="0.517832983217161"
+        iyz="0.00429186664480149"
+        izz="6.87363308732468" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://mri_no_person_collision_pattern/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://mri_no_person_collision_pattern/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+</robot>
