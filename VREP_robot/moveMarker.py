@@ -3,21 +3,25 @@
 #************************************************************************************************
 
 #---------------------------------------------
-#vrep imports
+#standard imports
 #---------------------------------------------
 import numpy as np
-import vrep
-from forwardKinematics import robot_config
 import time
 import os
 import socket
 from copy import deepcopy
-from getRobotPose import *
+
+#---------------------------------------------
+#vrep imports
+#---------------------------------------------
+import vrep
+from utils.forwardKinematics import robot_config
+from utils.getRobotPose import *
 #---------------------------------------------
 #motor imports
 #---------------------------------------------
-from motor_class import motors
-from tcp_class import tcp_communication
+from utils.motor_class import motors
+from utils.tcp_class import tcp_communication
 
 #---------------------------------------------
 #optitrak imports
@@ -26,14 +30,14 @@ import signal
 import sys
 import transforms3d as t3d
 from copy import deepcopy
-from GetJointData import data, NatNetFuncs#receiveNewFrame, receiveRigidBodyFrameList
-from NatNetClient2 import NatNetClient
-from AngleControl import MotorControl
+from utils.GetJointData import data, NatNetFuncs
+from utils.NatNetClient2 import NatNetClient
+from utils.AngleControl import MotorControl
 
 
-#************************************************************************************************
-#setup and initialization
-#************************************************************************************************
+# ************************************************************************************************
+# setup and initialization
+# ************************************************************************************************
 
 #---------------------------------------------
 #optitrak setup
