@@ -27,9 +27,9 @@ motors.zero_arm(track_data, NatNet)
 
 class Motors():
 	def __init__(self, P ,PL ,I, IL ,D, control_freq = 50):
-		#Constants
+		#Constants -> also belt pitch 2mm
 		self.encoder_counts = 1440
-		self.gear_ratio = 470
+		self.gear_ratio = 470 #479
 		self.counts_per_revolution = self.gear_ratio * self.encoder_counts
 		self.counts_per_radian = self.counts_per_revolution / (2 * np.pi)
 		self.counts_per_degree = self.counts_per_revolution / 360
@@ -37,7 +37,10 @@ class Motors():
 
 		self.motor_pos = np.zeros(8)	#running track of motor position in encoder counts, updates with each command
 		self.motor_encoders_data = np.zeros(8) #running track of read data
+		self.limit_switches_data = np.zeros(8)
 		self.joint_encoders_data = np.zeros(4) #running track of read data
+		self.avg_current = 0
+
 
 		self.current_time = time.time()
 		self.time_last_run = time.time()
@@ -97,8 +100,9 @@ class Motors():
 
 		else:
 			self.motor_encoders_data = np.array(list(map(int, data[1:9])))
+			self.limit_switches_data = np.array(list(map(int, data[9:17])))
 			self.joint_encoders_data = np.array(list(map(int, data[17:21])))
-			#self.limit_data = np.array(list(map(int, data[9:17])))
+			self.avg_current = float(data[21])
 
 			if print_sensors:
 				print('Read motor encoder positions {}'.format(self.motor_encoders_data))
