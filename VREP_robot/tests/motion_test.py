@@ -3,8 +3,11 @@ import sys
 sys.path.append("..")
 
 import time
+from datetime import date
+import os
 import signal
 import numpy as np
+import matplotlib.pyplot as plt
 import vrep
 
 from utils.motor_setup import Motors
@@ -14,41 +17,37 @@ def signal_handler(signal, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-#Constants
+script_dir = os.path.dirname(__file__)
+results_dir = os.path.join(script_dir, 'Motor_Data/')
+if not os.path.isdir(results_dir):
+    os.makedirs(results_dir)
+
+#Constants for motor setup
 socket_ip = '192.168.1.18'
 socket_port = 1122
-
 P = 0
 PL = 0
 I = 0
 IL = 0
 D = 0
+
 motors = Motors(P ,PL ,I, IL ,D)
 motors.tcp_init(socket_ip, socket_port)
 print("Arming motors now...")
 motors.arm_motors()
-time.sleep(2)
+time.sleep(1)
 
-#------------------------------
-#Current Readings
-#------------------------------
-while(True):
-	motors.command_motors(np.zeros(8))
-	print("{:.3f} mA".format(1000*motors.avg_current))
+
+num_limitswitch_bumps = 1
+bumps = 0
+
+enc_position = np.zeros(8)
+while(num_limitswitch_bumps > bumps):
+	enc_position = enc_position + 1000
+	motors.command_motors(enc_position)
+	limit_switches = motors.limit_switches_data
+	print(limit_switches)
 	time.sleep(0.01)
-#------------------------------
-#------------------------------
-
-
-
-# limit_switches = 0
-# enc_position = np.zeros(8)
-# while(np.sum(limit_switches) == 0):
-# 	enc_position = enc_position + 1000
-# 	motors.command_motors(enc_position)
-# 	limit_switches = motors.limit_switches_data
-# 	print(limit_switches)
-# 	time.sleep(0.01)
 
 print("done")
 motors.tcp_close()
@@ -58,8 +57,8 @@ motors.tcp_close()
 # server_ip = "192.168.1.27"
 # multicastAddress = "239.255.42.99"
 # print_trak_data = False
-# optitrack_joint_names = ['base', 'j2', 'j3', 'j4', 'target']
-# ids = [0, 1, 2, 3, 4]
+# optitrack_joint_names = ['base', 'j1', 'j2']
+# ids = [0, 1, 2]
 
 # #Tracking class
 # print("Starting streaming client now...")
