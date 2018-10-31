@@ -54,15 +54,13 @@ class VREP_Environement():
                 vrep.simx_opmode_oneshot)
         
             # Start the simulation
-            #vrep.simxStartSimulation(clientID,vrep.simx_opmode_blocking) #to increase loop speed mode is changed.
-            vrep.simxStartSimulation(clientID,vrep.simx_opmode_oneshot_wait)
+            #vrep.simxStartSimulation(self.clientID,vrep.simx_opmode_blocking) #to increase loop speed mode is changed.
+            vrep.simxStartSimulation(self.clientID,vrep.simx_opmode_oneshot_wait)
 
 
     def shutdown(self):
         vrep.simxStopSimulation(self.clientID, vrep.simx_opmode_oneshot)
         vrep.simxFinish(self.clientID)
-
-
 class VREP_Robot():
     '''This object defines the robots in the environment'''
     def __init__(self, robot_name, handle_names, connection_type = 'nonblocking'):
@@ -90,7 +88,7 @@ class VREP_Robot():
             print("Robot not attached to VREP environment")
         else:
             vrep.simxSetObjectPosition(
-                clientID,
+                self.clientID,
                 object_name,
                 -1,# Setting the absolute position
                 position=cartesian_position,
@@ -102,7 +100,7 @@ class VREP_Robot():
             print("Robot not attached to VREP environment")
         else:
             vrep.simxSetObjectQuaternion(
-                clientID,
+                self.clientID,
                 object_name,
                 vrep.sim_handle_parent,# Setting the absolute position
                 quaternion, #(x, y, z, w)
@@ -114,7 +112,7 @@ class VREP_Robot():
             print("Robot not attached to VREP environment")
         else:
             cartesian_position = vrep.simxGetObjectPosition(
-                clientID,
+                self.clientID,
                 object_name,
                 -1,# Setting the absolute position
                 operationMode = self.opmode
@@ -126,7 +124,7 @@ class VREP_Robot():
             print("Robot not attached to VREP environment")
         else:
             quaternion = vrep.simxGetObjectQuaternion(
-                clientID,
+                self.clientID,
                 object_name,
                 -1,# Setting the absolute position
                 operationMode = self.opmode

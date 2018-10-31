@@ -34,10 +34,36 @@ class robot_config:
         
         #static offset from origin to joint 1
         self.T0l1 = sp.Matrix([
-            [sp.cos(-np.pi/2), -sp.sin(-np.pi/2), 0, 0],
-            [sp.sin(-np.pi/2), sp.cos(-np.pi/2), 0, 0],
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]]) * sp.Matrix([
+            [1, 0, 0, 0],
+            [0, sp.cos(-np.pi/2), -sp.sin(-np.pi/2), 0],
+            [0, sp.sin(-np.pi/2), sp.cos(-np.pi/2), 0.],
+            [0, 0, 0, 1]]) * sp.Matrix([
+            [sp.cos(-np.pi), -sp.sin(-np.pi), 0, 0],
+            [sp.sin(-np.pi), sp.cos(-np.pi), 0, 0],
             [0, 0, 1, 0],
             [0, 0, 0, 1]])
+        
+            #sp.Matrix([
+            #[sp.cos(-np.pi/2), -sp.sin(-np.pi/2), 0, 0],
+            #[sp.sin(-np.pi/2), sp.cos(-np.pi/2), 0, 0],
+            #[0, 0, 1, 0],
+            #[0, 0, 0, 1]]) * 
+            
+            #sp.Matrix([
+            #[sp.cos(-np.pi/2), 0, sp.sin(-np.pi/2), 0],
+            #[0, 1, 0, 0],
+            #[-sp.sin(-np.pi/2), 0, sp.cos(-np.pi/2), 0],
+            #[0, 0, 0, 1]])
+            
+            #sp.Matrix([
+            #[1, 0, 0, 0],
+            #[0, sp.cos(np.pi/2), -sp.sin(np.pi/2), 0],
+            #[0, sp.sin(np.pi/2), sp.cos(np.pi/2), 0.],
+            #[0, 0, 0, 1]])
 
         #joint 1 transformation
         self.T01 = sp.Matrix([
@@ -62,9 +88,9 @@ class robot_config:
         
         #joint 2 to joint 3 static offset
         self.T2l3 = sp.Matrix([
-            [sp.cos(np.pi/2), 0, sp.sin(np.pi/2), 0],
+            [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [-sp.sin(np.pi/2), 0, sp.cos(np.pi/2), 1.8],
+            [0, 0, 1, 1.8],
             [0, 0, 0, 1]])
         
         #joint 3 transformation
@@ -79,6 +105,10 @@ class robot_config:
             [1, 0, 0, 0],
             [0, sp.cos(np.pi/2), -sp.sin(np.pi/2), 0],
             [0, sp.sin(np.pi/2), sp.cos(np.pi/2), 0.113],
+            [0, 0, 0, 1]]) * sp.Matrix([
+            [sp.cos(np.pi/2), 0, sp.sin(np.pi/2), 0],
+            [0, 1, 0, 0],
+            [-sp.sin(np.pi/2), 0, sp.cos(np.pi/2), 0],
             [0, 0, 0, 1]])
 
         #joint 4 transformation
@@ -104,9 +134,9 @@ class robot_config:
             
         #joint 5 to joint 6 static offset
         self.T5l6 = sp.Matrix([
-            [sp.cos(np.pi/2), 0, sp.sin(np.pi/2), 0],
+            [sp.cos(-np.pi/2), 0, sp.sin(-np.pi/2), 0],
             [0, 1, 0, 0.08],
-            [-sp.sin(np.pi/2), 0, sp.cos(np.pi/2), 0],
+            [-sp.sin(-np.pi/2), 0, sp.cos(-np.pi/2), 0],
             [0, 0, 0, 1]]) 
         
         #joint 6 transformation
