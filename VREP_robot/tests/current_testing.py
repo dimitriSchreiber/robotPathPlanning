@@ -23,7 +23,7 @@ if not os.path.isdir(results_dir):
     os.makedirs(results_dir)
 
 #Constants
-socket_ip = '192.168.1.18'
+socket_ip = '192.168.1.20'
 socket_port = 1122
 
 P = 0
@@ -43,13 +43,17 @@ time.sleep(1)
 #------------------------------
 sensing_time = 15 #seconds
 torque_constant = 0.0566 #mNm / mA
-gear_ratio = 13
+gear_ratio = 20
 time_vals = []
 current_vals = []
 start_time = time.time()
 
+
+enc_position = np.zeros(8)
 while(time.time()-start_time < sensing_time):
-	motors.command_motors(np.zeros(8))
+	enc_position = enc_position + 100
+	motors.command_motors(enc_position)
+	#motors.command_motors(np.zeros(8))
 	current = 1000*motors.avg_current
 	time_vals.append(time.time()-start_time)
 	current_vals.append(current)
