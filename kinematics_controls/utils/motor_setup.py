@@ -29,7 +29,7 @@ class Motors():
 	def __init__(self, P ,PL ,I, IL ,D, control_freq = 50):
 		#Constants -> also belt pitch 2mm
 		self.encoder_counts = 1440
-		self.gear_ratio = 470 #479
+		self.gear_ratio = 479
 		self.counts_per_revolution = self.gear_ratio * self.encoder_counts
 		self.counts_per_radian = self.counts_per_revolution / (2 * np.pi)
 		self.counts_per_degree = self.counts_per_revolution / 360
