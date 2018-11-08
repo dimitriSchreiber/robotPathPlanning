@@ -70,7 +70,7 @@ class remoteRobotArm():
 		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0], 
 											   [0, 1, 0, 0], 
 											   [0, 0, 1, 0], 
-											   [-Ds/2, Ds/2, Dl/2, 1/2]]), motorTheta_armTheta) #divided last row by 2!!!!, if issues try removing this first
+											   [-Ds, Ds, Dl, 1]]), motorTheta_armTheta) #divided last row by 2!!!!, if issues try removing this first
 
 		self.motorTheta_armTheta_full[3:, 3:] = motorTheta_armTheta
 		self.armTheta_motorTheta = np.linalg.inv(self.motorTheta_armTheta_full) #is a 4x4 submatrix for 4dof arm

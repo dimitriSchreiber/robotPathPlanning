@@ -8,7 +8,6 @@ import os
 import signal
 import numpy as np
 import matplotlib.pyplot as plt
-import vrep
 
 from utils.motor_setup import Motors
 
