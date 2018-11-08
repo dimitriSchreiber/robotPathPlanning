@@ -22,11 +22,11 @@ class remoteRobotArm():
 		self.jointAngledError = np.zeros(7) #N/A
 		self.motorAngleSetpoint = np.zeros(7) #Motor angle commands given mixing matrix
 
-		self.robotJacobian = np.zeros(7,6) #from forwardKinematics.py
+		self.robotJacobian = np.zeros((7,6)) #from forwardKinematics.py
 		
-		self.endEffectorCurrent = np.zeros(2,3) #fromOptitrack
-		self.endEffectorSetpoint = np.zeros(2,3) #input
-		self.endEffectorError = np.zeros(2,3)
+		self.endEffectorCurrent = np.zeros((2,3)) #fromOptitrack
+		self.endEffectorSetpoint = np.zeros((2,3)) #input
+		self.endEffectorError = np.zeros((2,3))
 
 		self.initMotorArmMixing()
 
@@ -34,12 +34,19 @@ class remoteRobotArm():
 		#armTheta is a 7x1 for desired joint angles
 		#linear motions are in ?meters?, DOUBLE CHECK THESE!!!d
 		#rotary motions are in radians
+		self.motorTheta_armTheta_full = np.zeros((7,7))
+
 
 		#linear motions are very questionable right now and NEED TO BE REVIEWED!
 
 		#backend mixing matrix;
-		X_Y_pulley = 25 * 2 #pulley circumerference
+		X_Y_pulley = 25 * 2  / (2 * pi)#linear motion (mm) per radian
 		rotaryAxis_pulley = 50 / 25 #ratio for rotary axis
+
+		self.motorTheta_armTheta_full[0,0] = X_Y_pulley
+		self.motorTheta_armTheta_full[1,1] = X_Y_pulley
+		self.motorTheta_armTheta_full[2,2] = rotaryAxis_pulley
+
 
 		#cable driven arm mixing matrix:
 		#Pulley diameters (mm)
@@ -52,13 +59,21 @@ class remoteRobotArm():
 		Dj3 = 13.5	#joint 3 terminating pulley
 
 		motorTheta_armTheta = np.eye(4) * np.array([Db/Dj1, Db/Dj2, Db/Dj3, Db])
-		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0], [Dl/Dj2, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]), motorTheta_armTheta)
-		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [Dm/Dj3, -Dm/Dj3, 1, 0], [0, 0, 0, 1]]), motorTheta_armTheta)
-		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [-Ds, Ds, Dl, 1]]), motorTheta_armTheta)
+		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0],
+											   [Dl/Dj2, 1, 0, 0],
+											   [0, 0, 1, 0], 
+											   [0, 0, 0, 1]]), motorTheta_armTheta)
+		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0], 
+											   [0, 1, 0, 0], 
+											   [Dm/Dj3, -Dm/Dj3, 1, 0], 
+											   [0, 0, 0, 1]]), motorTheta_armTheta)
+		motorTheta_armTheta = np.dot(np.array([[1, 0, 0, 0], 
+											   [0, 1, 0, 0], 
+											   [0, 0, 1, 0], 
+											   [-Ds/2, Ds/2, Dl/2, 1/2]]), motorTheta_armTheta) #divided last row by 2!!!!, if issues try removing this first
 
-		self.motorTheta_armTheta_full = np.zeros((7,7))
 		self.motorTheta_armTheta_full[3:, 3:] = motorTheta_armTheta
-		self.armTheta_motorTheta = np.linalg.inv(motorTheta_armTheta_full) #is a 4x4 submatrix for 4dof arm
+		self.armTheta_motorTheta = np.linalg.inv(self.motorTheta_armTheta_full) #is a 4x4 submatrix for 4dof arm
 
 	def updateMotorArmMixing(self):
 		self.motorAngleSetpoint = np.dot(self.armTheta_motorTheta, self.jointAngleSetpoint) #takes in arm thetas and gives appropriate motor thetas

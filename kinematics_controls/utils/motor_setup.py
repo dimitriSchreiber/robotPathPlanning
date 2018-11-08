@@ -8,8 +8,8 @@ import sys
 import os
 
 from .tcp_class import tcp_communication
-from .JointAngleMixing import MotorArmMixing #accounts for coupling in motion
-from .getRobotPose import getOptitrackPose
+#from .JointAngleMixing import MotorArmMixing #accounts for coupling in motion
+#from .getRobotPose import getOptitrackPose
 
 
 
