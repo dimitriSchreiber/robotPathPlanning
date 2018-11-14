@@ -50,13 +50,14 @@ start_time = time.time()
 
 enc_position = np.zeros(8)
 while(time.time()-start_time < sensing_time):
-	enc_position = enc_position + 100
+	dt = time.time() - start_time
+	enc_position = np.ones(8)*np.sin(dt * .25 * 3.14) * 4000
 	motors.command_motors(enc_position)
 	#motors.command_motors(np.zeros(8))
 	current = 1000*motors.avg_current
 	time_vals.append(time.time()-start_time)
 	current_vals.append(current)
-	print("{:.3f} mA".format(current))
+	#print("{:.3f} mA".format(current))
 	time.sleep(0.01)
 
 time_vals = np.array(time_vals)
