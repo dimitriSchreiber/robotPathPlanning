@@ -5,7 +5,7 @@ class trajectoryGenerator:
     
     #list of start points and end points and corresponding max velocities,
     #period is in how fast the output command is sent to the robot, unit should be same as velocity
-    def creatTrajectoryMaxVelocity(self, startPoints, endPoints, maxVelocities, period):
+    def createTrajectoryMaxVelocity(self, startPoints, endPoints, maxVelocities, period):
         
         startPoints = np.array(startPoints)
         endPoints = np.array(endPoints)
