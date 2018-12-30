@@ -81,7 +81,9 @@ while True:
     orientation[orientation>np.pi/2] = np.pi/2
     orientation[orientation<-np.pi/2] = -np.pi/2
     
-    vrep_env.ik_robot.setObjectPosition(vrep_env.ik_robot.handles[7], position, relative2 = 'ik_rf7_static' )
+    position_reordered = np.array([-position[2], -position[0], position[1]])
+
+    vrep_env.ik_robot.setObjectPosition(vrep_env.ik_robot.handles[7], position_reordered, relative2 = 'ik_rf7_static' )
     #vrep_env.ik_robot.setObjectOrientation(vrep_env.ik_robot.handles[7], orientation, relative2 = 'ik_rf7_static' )
     
 
