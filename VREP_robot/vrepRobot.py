@@ -233,3 +233,15 @@ class VREP_Robot():
                 operationMode = self.opmode
                 )
         return quaternion
+
+    def GetObjectGroupData(self, object_name, parameter): #does not work
+        if self.clientID == None:
+            print("Robot not attached to VREP environment")
+            return -1
+        else:
+            return vrep.simxGetObjectGroupData(
+                self.clientID,
+                object_name,
+                parameter,
+                operationMode = self.opmode
+                )

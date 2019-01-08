@@ -153,7 +153,7 @@ class CableReduction(Motors):
 
 class maxonGearSmall(Motors):
 	def __init__(self):
-		super(maxonGearSmall, self).__init__(encoder_counts=1440, gear_ratio=479, P = 5, I = 0, D = 0)
+		super(maxonGearSmall, self).__init__(encoder_counts=1440, gear_ratio=479, P = 5, I = 0, D = 0, maxVelocity = np.pi, maxPosition = [-20*np.pi, 20*np.pi])
 
 
 class trajectoryGenerator:
