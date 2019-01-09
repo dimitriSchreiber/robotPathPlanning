@@ -6,7 +6,7 @@
 import curses
 from curses import wrapper
 
-
+import transforms3d as t3d
 
 import sys
 sys.path.append("..")
@@ -63,6 +63,7 @@ def main(stdscr):
 	# In[ ]:
 	position = np.zeros(3)
 	orientation = np.zeros(3)
+	orientation_mat = np.eye(3)
 	joint_data = [0,0,0,0,0,0,0]
 
 	stdscr.nodelay(True)
@@ -98,16 +99,24 @@ def main(stdscr):
 			position[1] = position[1] + mouse.event[2] * .000001
 			position[2] = position[2] + mouse.event[1] * .000001
 		else:
-			orientation[0] = orientation[0] + 0.001 * mouse.event[3] * np.pi/180
-			orientation[1] = orientation[1] + 0.001 * mouse.event[5] * np.pi/180
-			orientation[2] = orientation[2] + 0.001 * mouse.event[4] * np.pi/180
+			orientation[0] = 0.001 * mouse.event[3] * np.pi/180
+			orientation[1] = 0.001 * mouse.event[5] * np.pi/180
+			orientation[2] = 0.001 * mouse.event[4] * np.pi/180
+
+		stdscr.addstr(10,0,str('Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format( mouse.event[3],  mouse.event[4],  mouse.event[5])))
 
 		position = np.clip(position, -0.1, 0.1)
-		orientation = np.clip(orientation, -np.pi/2, np.pi/2)
+		#orientation = np.clip(orientation, -np.pi/2, np.pi/2)
+
 		position_reordered = np.array([-position[2], -position[0], position[1]])
+		orientation_reordered = np.array([orientation[0], orientation[1], orientation[2]])
+
+		orientation_mat = t3d.euler.euler2mat(orientation_reordered[0], orientation_reordered[1], orientation_reordered[2]).T @ orientation_mat
+		orientation_quat = np.roll(t3d.quaternions.mat2quat(orientation_mat), -1)
 
 		vrep_env.ik_robot.setObjectPosition(vrep_env.ik_robot.handles[7], position_reordered, relative2 = 'ik_rf7_static' )
-		vrep_env.ik_robot.setObjectOrientation(vrep_env.ik_robot.handles[7], orientation, relative2 = 'ik_rf7_static' )
+		#vrep_env.ik_robot.setObjectOrientation(vrep_env.ik_robot.handles[7], orientation_reordered, relative2 = 'ik_rf7_static' )
+		vrep_env.ik_robot.setObjectQuaternion(vrep_env.ik_robot.handles[7], orientation_quat, relative2 = 'ik_rf7_static' )
 
 		for i in range(len(viz_handles)):
 			joint_pos = vrep_env.ik_robot.getJointPosition(vrep_env.ik_robot.handles[i])[1]
@@ -116,19 +125,21 @@ def main(stdscr):
 			vrep_env.viz_robot.setJointPosition(vrep_env.viz_robot.handles[i], joint_pos)
 
 		# Get the IK Jacobian
-		'''res,retInts,retFloats,retStrings,retBuffer=vrep.simxCallScriptFunction(
+		res,retInts,retFloats,retStrings,retBuffer=vrep.simxCallScriptFunction(
 			vrep_env.ik_robot.clientID,
-			'IK_Robot',
+			'ik_robot',
 			vrep.sim_scripttype_childscript,
 			'GetIkJacobian',
-			{},    # inputIntsn
-			{},    # inputFloats
-			{},    # inputStrings
+			[],    # inputIntsn
+			[],    # inputFloats
+			[],    # inputStrings
 			'',    # inputBuffer
 			vrep.simx_opmode_blocking
 		)
+		stdscr.addstr(12,0, str(retInts))
+		stdscr.addstr(13,0, str(retFloats[-1]))
 
-		stdscr.addstr(12,0,str(retInts))'''
+		#stdscr.addstr(12,0,str(retInts))
 
 
 		stdscr.refresh()
