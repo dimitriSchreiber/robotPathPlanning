@@ -103,7 +103,7 @@ def main(stdscr):
 			orientation[1] = 0.001 * mouse.event[5] * np.pi/180
 			orientation[2] = 0.001 * mouse.event[4] * np.pi/180
 
-		stdscr.addstr(10,0,str('Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format( mouse.event[3],  mouse.event[4],  mouse.event[5])))
+		stdscr.addstr(10,0,str('Position 1: {:5}, Position 2: {:5}, Position 3: {:5}, Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format(mouse.event[0], mouse.event[1], mouse.event[2], mouse.event[3],  mouse.event[4],  mouse.event[5])))
 
 		position = np.clip(position, -0.1, 0.1)
 		#orientation = np.clip(orientation, -np.pi/2, np.pi/2)
