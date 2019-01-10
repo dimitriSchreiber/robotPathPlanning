@@ -51,7 +51,7 @@ class MouseClient:
 				shared_event[0] = int(event.x * scaling_value)
 				shared_event[1] = int(event.y * scaling_value)
 				shared_event[2] = int(event.z * scaling_value)
-				shared_event[3] = int(event.rz * scaling_value)
+				shared_event[3] = int(event.rx * scaling_value)
 				shared_event[4] = int(event.ry * scaling_value)
 				shared_event[5] = int(event.rz * scaling_value)
 
