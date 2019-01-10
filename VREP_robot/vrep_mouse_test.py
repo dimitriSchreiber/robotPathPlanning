@@ -99,13 +99,13 @@ def main(stdscr):
 			position[1] = position[1] + mouse.event[2] * .000001
 			position[2] = position[2] + mouse.event[1] * .000001
 		else:
-			orientation[0] = 0.001 * mouse.event[3] * np.pi/180
-			orientation[1] = 0.001 * mouse.event[5] * np.pi/180
-			orientation[2] = 0.001 * mouse.event[4] * np.pi/180
+			orientation[0] = 0.001 * mouse.event[4] * np.pi/180
+			orientation[1] = 0.001 * mouse.event[3] * np.pi/180
+			orientation[2] = -0.001 * mouse.event[5] * np.pi/180
 
 		stdscr.addstr(10,0,str('Position 1: {:5}, Position 2: {:5}, Position 3: {:5}, Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format(mouse.event[0], mouse.event[1], mouse.event[2], mouse.event[3],  mouse.event[4],  mouse.event[5])))
 
-		position = np.clip(position, -0.1, 0.1)
+		position = np.clip(position, -0.5, 0.5)
 		#orientation = np.clip(orientation, -np.pi/2, np.pi/2)
 
 		position_reordered = np.array([-position[2], -position[0], position[1]])
