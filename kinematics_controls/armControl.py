@@ -28,8 +28,8 @@ class remoteRobotArm():
         self.endEffectorCurrent = np.zeros((2,3)) #fromOptitrack
         self.endEffectorSetpoint = np.zeros((2,3)) #input
         self.endEffectorError = np.zeros((2,3))
-        self.jointUpperLimits = np.array([1000,1000,5,0.872,0.872,0.872,50])
-        self.jointLowerLimits = np.array([0,0,-5,-0.872,-0.872,-0.872,0])
+        self.jointUpperLimits = np.array([82.5,42.5,5,0.872,0.872,0.872,50])
+        self.jointLowerLimits = np.array([-82.5,-42.5,-5,-0.872,-0.872,-0.872,0])
         
         self.initMotorArmMixing()
 
@@ -43,7 +43,7 @@ class remoteRobotArm():
         #linear motions are very questionable right now and NEED TO BE REVIEWED!
 
         #backend mixing matrix;
-        X_Y_pulley = 25 * 2  / (2 * pi)#linear motion (mm) per radian
+        X_Y_pulley = 18 * 2  / (2 * pi)#linear motion (mm) per radian
         rotaryAxis_pulley = 50 / 25 #ratio for rotary axis
 
         self.motorTheta_armTheta_full[0,0] = X_Y_pulley
@@ -105,18 +105,22 @@ class remoteRobotArm():
         self.jointAngleSetpoint = temp   
         self.motorAngleSetpoint = self.armTheta_motorTheta @ self.jointAngleSetpoint #takes in arm thetas and gives appropriate motor thetas
     def commandJoints(self, motors, setpoint_arm, trajectory = True):
+        setpoint_arm[0] = 1 * setpoint_arm[0] * 1000
+        setpoint_arm[1] = -1 * setpoint_arm[1] * 1000
+        setpoint_arm[2] = 1 * setpoint_arm[2] 
         setpoint_arm[3] = -1 * setpoint_arm[3]
         setpoint_arm[4] = 1 * setpoint_arm[4]
         setpoint_arm[5] = -1 * setpoint_arm[5]
+        setpoint_arm[6] = 1 * setpoint_arm[6] * 1000
 
         self.jointAngleSetpoint = setpoint_arm
         self.updateMotorArmMixing()
         
-        axis_motor_indexes = np.array([-1, -1, -1, 0, 3, 2, 1])
+        axis_motor_indexes = np.array([5, 4, 6, 0, 3, 2, 1]) #6 might be wrong 
         velocity = np.ones(8)*3.14/20
         
         setpoint_motor = np.zeros(8)
-        setpoint_motor[axis_motor_indexes[3:7]] = self.motorAngleSetpoint[3:7]
+        setpoint_motor[axis_motor_indexes[0:7]] = self.motorAngleSetpoint[0:7]
 
         if trajectory:
             motors.run_trajectory(setpoint_motor, velocity)
