@@ -10,6 +10,8 @@ import transforms3d as t3d
 
 import sys
 sys.path.append("..")
+sys.path.append("./VREP_robot")
+
 import numpy as np
 import time
 import vrep
@@ -25,9 +27,6 @@ from utils.mouse3d import MouseClient
 def main(stdscr):
 	# Clear screen
 	stdscr.clear()
-
-	mouse = MouseClient()
-	mouse.run()
 	#mouse.stop()
 
 
@@ -48,7 +47,6 @@ def main(stdscr):
 	initialPosition = [0.0,0.0,0.0]
 	vrep_env.ik_robot.setObjectPosition(vrep_env.ik_robot.handles[7], initialPosition, relative2 = 'ik_rf7_static' )
 	vrep_env.ik_robot.setObjectOrientation(vrep_env.ik_robot.handles[7], [0,0,0], relative2 = 'ik_rf7_static' )
-
 	vrep_env.ik_robot.setObjectPosition(vrep_env.ik_robot.handles[8], initialPosition, relative2 = 'ik_rf7_static' )
 	vrep_env.ik_robot.setObjectOrientation(vrep_env.ik_robot.handles[8], [0,0,0], relative2 = 'ik_rf7_static' )
 
@@ -57,20 +55,17 @@ def main(stdscr):
 	#Add all robot before starting the simulation - once robots are added start simulation
 	vrep_env.start_simulation()
 
-
 	insertion_pos = vrep_env.ik_robot.getJointPosition(vrep_env.ik_robot.handles[-1])[1]
-
 	# In[ ]:
 	position = np.zeros(3)
 	orientation = np.zeros(3)
 	orientation_mat = np.eye(3)
 	joint_data = [0,0,0,0,0,0,0]
-
 	stdscr.nodelay(True)
-	stdscr.addstr(0, 0, str(mouse.event[:]))
+	#stdscr.addstr(0, 0, str(mouse.event[:]))
 
 	mode = True
-
+	loopCounter = 0
 	while True:
 
 		c = stdscr.getch()
@@ -89,33 +84,34 @@ def main(stdscr):
 			stdscr.addstr(1,0,str('Position mode, press r to change'))
 		else:
 			stdscr.addstr(1,0,str('Orientation mode, press r to change'))
-
 		#x,z,y,rx,rz,ry, meters and radians
 		#0-500 regualr scaling on the mouse, max speed is 5 mm update
 		#5 degs -> np.pi/180 * 5
 
-		if mode:
-			position[0] = position[0] + mouse.event[0] * .000001
-			position[1] = position[1] + mouse.event[2] * .000001
-			position[2] = position[2] + mouse.event[1] * .000001
-		else:
-			orientation[0] = 0.001 * mouse.event[4] * np.pi/180
-			orientation[1] = 0.001 * mouse.event[3] * np.pi/180
-			orientation[2] = -0.001 * mouse.event[5] * np.pi/180
+		#if mode:
+		#	position[0] = position[0] + mouse.event[0] * .000001
+		#	position[1] = position[1] + mouse.event[2] * .000001
+		#	position[2] = position[2] + mouse.event[1] * .000001
+		#else:
+		#	orientation[0] = 0.001 * mouse.event[4] * np.pi/180
+		#	orientation[1] = 0.001 * mouse.event[3] * np.pi/180
+		#	orientation[2] = -0.001 * mouse.event[5] * np.pi/180
 
-		stdscr.addstr(10,0,str('Position 1: {:5}, Position 2: {:5}, Position 3: {:5}, Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format(mouse.event[0], mouse.event[1], mouse.event[2], mouse.event[3],  mouse.event[4],  mouse.event[5])))
+		#stdscr.addstr(10,0,str('Position 1: {:5}, Position 2: {:5}, Position 3: {:5}, Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format(mouse.event[0], mouse.event[1], mouse.event[2], mouse.event[3],  mouse.event[4],  mouse.event[5])))
 
+
+		position[0] = np.sin(time.time()/(2*np.pi))/5
 		position = np.clip(position, -0.5, 0.5)
-		#orientation = np.clip(orientation, -np.pi/2, np.pi/2)
 
 		position_reordered = np.array([-position[2], -position[0], position[1]])
 		orientation_reordered = np.array([orientation[0], orientation[1], orientation[2]])
-
 		orientation_mat = t3d.euler.euler2mat(orientation_reordered[0], orientation_reordered[1], orientation_reordered[2]).T @ orientation_mat
 		orientation_quat = np.roll(t3d.quaternions.mat2quat(orientation_mat), -1)
+		
+
+		start = time.time()
 
 		vrep_env.ik_robot.setObjectPosition(vrep_env.ik_robot.handles[7], position_reordered, relative2 = 'ik_rf7_static' )
-		#vrep_env.ik_robot.setObjectOrientation(vrep_env.ik_robot.handles[7], orientation_reordered, relative2 = 'ik_rf7_static' )
 		vrep_env.ik_robot.setObjectQuaternion(vrep_env.ik_robot.handles[7], orientation_quat, relative2 = 'ik_rf7_static' )
 
 		for i in range(len(viz_handles)):
@@ -125,7 +121,8 @@ def main(stdscr):
 			vrep_env.viz_robot.setJointPosition(vrep_env.viz_robot.handles[i], joint_pos)
 
 		# Get the IK Jacobian
-		res,retInts,retFloats,retStrings,retBuffer=vrep.simxCallScriptFunction(
+
+		'''res,retInts,retFloats,retStrings,retBuffer=vrep.simxCallScriptFunction(
 			vrep_env.ik_robot.clientID,
 			'ik_robot',
 			vrep.sim_scripttype_childscript,
@@ -134,18 +131,20 @@ def main(stdscr):
 			[],    # inputFloats
 			[],    # inputStrings
 			'',    # inputBuffer
-			vrep.simx_opmode_blocking
-		)
-		stdscr.addstr(11,0, 'Joint positions [meters, meters, radians, radians, radians, radians, meters]: ' + str(joint_data))
-		stdscr.addstr(12,0, str(retInts))
-		stdscr.addstr(13,0, str(retFloats[-1]))
+			vrep.simx_opmode_blocking #--> oneshot is not simx_opmode_oneshot#
+		)'''
+
+		if loopCounter > 10:
+			stdscr.addstr(11,0, 'Joint positions [meters, meters, radians, radians, radians, radians, meters]: ' + str(joint_data))
+			#stdscr.addstr(12,0, str(retInts))
+			#stdscr.addstr(13,0, str(retFloats[-1]))
 
 		#stdscr.addstr(12,0,str(retInts))
-
-
+		loopCounter += 1
+		end = time.time()
+		stdscr.addstr(18,0,str(end-start))
 		stdscr.refresh()
 
-		time.sleep(0.01)
 
 wrapper(main)
     
