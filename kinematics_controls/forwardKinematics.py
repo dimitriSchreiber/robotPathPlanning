@@ -32,6 +32,27 @@ class robot_config:
         self.joint_names = ['j1', 'j2', 'j3', 'j4', 'j5', 'j6', 'j7']
 
         
+        #rotation around z
+        #sp.Matrix([
+        #[sp.cos(-np.pi/2), -sp.sin(-np.pi/2), 0, 0],
+        #[sp.sin(-np.pi/2), sp.cos(-np.pi/2), 0, 0],
+        #[0, 0, 1, 0],
+        #[0, 0, 0, 1]]) * 
+
+        #rotation around y
+        #sp.Matrix([
+        #[sp.cos(-np.pi/2), 0, sp.sin(-np.pi/2), 0],
+        #[0, 1, 0, 0],
+        #[-sp.sin(-np.pi/2), 0, sp.cos(-np.pi/2), 0],
+        #[0, 0, 0, 1]])
+
+        #rotation around x
+        #sp.Matrix([
+        #[1, 0, 0, 0],
+        #[0, sp.cos(np.pi/2), -sp.sin(np.pi/2), 0],
+        #[0, sp.sin(np.pi/2), sp.cos(np.pi/2), 0.],
+        #[0, 0, 0, 1]])
+            
         #static offset from origin to joint 1
         self.T0l1 = sp.Matrix([
             [1, 0, 0, 0],
@@ -47,23 +68,7 @@ class robot_config:
             [0, 0, 1, 0],
             [0, 0, 0, 1]])
         
-            #sp.Matrix([
-            #[sp.cos(-np.pi/2), -sp.sin(-np.pi/2), 0, 0],
-            #[sp.sin(-np.pi/2), sp.cos(-np.pi/2), 0, 0],
-            #[0, 0, 1, 0],
-            #[0, 0, 0, 1]]) * 
-            
-            #sp.Matrix([
-            #[sp.cos(-np.pi/2), 0, sp.sin(-np.pi/2), 0],
-            #[0, 1, 0, 0],
-            #[-sp.sin(-np.pi/2), 0, sp.cos(-np.pi/2), 0],
-            #[0, 0, 0, 1]])
-            
-            #sp.Matrix([
-            #[1, 0, 0, 0],
-            #[0, sp.cos(np.pi/2), -sp.sin(np.pi/2), 0],
-            #[0, sp.sin(np.pi/2), sp.cos(np.pi/2), 0.],
-            #[0, 0, 0, 1]])
+
 
         #joint 1 transformation
         self.T01 = sp.Matrix([
@@ -223,7 +228,8 @@ class robot_config:
 
         #transform_mat = self._calc_T(name, lambdify = True)
         quat = t3d.quaternions.mat2quat(self._T[name](*tuple(q))[:3,:3]) #w, x, y, z, #t3d should be fast, the _calc_T I think is the slow part... 
-        quat = np.roll(quat, -1)
+        quat = np.roll(quat, -1) #for vrep
+        
         return quat
 
     def Te(self, name, q):

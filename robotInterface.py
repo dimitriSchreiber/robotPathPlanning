@@ -31,8 +31,8 @@ from utils.mouse3d import MouseClient
 #-----------------------------------------------------------
 #motor setup
 #-----------------------------------------------------------
-socket_ip = '192.168.1.26'
-socket_port = 1124
+socket_ip = '192.168.0.104'
+socket_port = 1125
 
 motors = maxonGearSmall()
 motors.tcp_init(socket_ip, socket_port)
@@ -118,9 +118,9 @@ def mouseUI(stdscr):
 			position[1] = position[1] + mouse.event[2] * .000001
 			position[2] = position[2] + mouse.event[1] * .000001
 		else:
-			orientation[0] = 0.001 * mouse.event[4] * np.pi/180
-			orientation[1] = 0.001 * mouse.event[3] * np.pi/180
-			orientation[2] = -0.001 * mouse.event[5] * np.pi/180
+			orientation[0] = 0.0002 * mouse.event[4] * np.pi/180
+			orientation[1] = 0.0002 * mouse.event[3] * np.pi/180
+			orientation[2] = -0.0002 * mouse.event[5] * np.pi/180
 		
 
 		#stdscr.addstr(10,0,str('Position 1: {:5}, Position 2: {:5}, Position 3: {:5}, Orientation 1: {:5}, Orientation 2: {:5}, Orientation 3: {:5}'.format(mouse.event[0], mouse.event[1], mouse.event[2], mouse.event[3],  mouse.event[4],  mouse.event[5])))

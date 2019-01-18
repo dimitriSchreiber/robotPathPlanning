@@ -91,6 +91,8 @@ class remoteRobotArm():
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
                      [D[3,0]/(2), D[3,1]/(2), D[3,2]/(2), Db/(2)]])
+        #a4 = np.eye(4)
+        #a4[3,3] = Db/2
         
         motorTheta_armTheta = a4 @ (a3 @ (a2 @ a1))
         

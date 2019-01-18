@@ -49,7 +49,7 @@ class Motors():
 		self.motor_encoders_data = np.zeros(8) #running track of read data
 		self.limit_switches_data = np.zeros(8)
 		self.joint_encoders_data = np.zeros(4) #running track of read data
-		self.avg_current = 0
+		self.avg_current = np.zeros(8)
 
 		self.current_time = time.time()
 		self.time_last_run = time.time()
@@ -58,13 +58,14 @@ class Motors():
 		#communication stuff setup on call to tcp_init
 		self.tcp = None
 		self.client_socket = None
-		self.zero_position = None
+		self.zero_position = np.zeros(8)#None
 		self.dt = 0.005
 
 
 	def tcp_init(self, socket_ip, socket_port):
 		self.tcp = tcp_communication(socket_ip, socket_port)
 		self.client_socket = self.tcp.open_socket()
+		self.client_socket.settimeout(1.0) #THIS IS NEW 1/17/2019 and may cause issues
 		IsWindows = os.name == 'nt'
 		if IsWindows:
 			self.tcp.setpriority()
@@ -72,18 +73,19 @@ class Motors():
 	def arm_motors(self):
 		self.read_buff()
 		print("initializing motors to {}".format(self.motor_encoders_data))
-		self.zero_position = deepcopy(self.motor_pos_commanded)
+		#self.zero_position = deepcopy(self.motor_pos_commanded) #removed 1/17/2018, we nolonger save zeros to text file, fix runaway?
 		time.sleep(1)
 		self.read_buff()
 		data = ('b' + 'arm' + 'd')
 		print("Arming motors")
 		self.client_socket.send(data.encode())
 		self.read_buff()
-		time.sleep(1)
+		self.command_motors(self.motor_encoders_data) #added 1/17/2019
+		time.sleep(0.25)
 		return
 
 	def command_motors(self, position): #sends new positions to controller and updates local position with encoder reads
-		self.motor_pos_commanded = position# + self.zero_position
+		self.motor_pos_commanded = position
 		pos = self.motor_pos_commanded + self.zero_position
 		data = ('b'+ str(int(pos[0])) + ' ' + str(int(pos[1])) + ' ' + str(int(pos[2])) + ' ' +
 					 str(int(pos[3])) + ' ' + str(int(pos[4])) + ' ' + str(int(pos[5])) + ' ' +
@@ -93,26 +95,28 @@ class Motors():
 		return
 
 	def read_buff(self, print_sensors = False):
-		data = str(self.client_socket.recv(256))
-		data = re.split('\s', data)
-		if data[1] == 'closeports':
-			self.client_socket.close()
-			print("\n\nServer side closed. Closing ports now.\n\n")
-			sys.exit()
-
-		if data[1] == 'err':
-			print("*** C side has an error or needs to be armed ***\n")
-
-		else:
-			self.motor_encoders_data = np.array(list(map(int, data[1:9])))
-			self.limit_switches_data = np.array(list(map(int, data[9:17])))
-			self.joint_encoders_data = np.array(list(map(int, data[17:21])))
-			self.avg_current = float(data[21])
-
+		try:
+			data = str(self.client_socket.recv(1024))
+			#print(data)
+			data = re.split('\s', data)
+			if data[1] == 'closeports':
+				self.client_socket.close()
+				print("\n\nServer side closed. Closing ports now.\n\n")
+				sys.exit()
+			if data[1] == 'err':
+				print("*** C side has an error or needs to be armed ***\n")
+			else:
+				self.motor_encoders_data = np.array(list(map(int, data[1:9])))
+				self.limit_switches_data = np.array(list(map(int, data[9:17])))
+				self.joint_encoders_data = np.array(list(map(int, data[17:21])))
+				self.avg_current = np.array(list(map(float, data[21:29])))
+				#print(data)
 			if print_sensors:
 				print('Read motor encoder positions {}'.format(self.motor_encoders_data))
 				print('Read joint encoder positions {}'.format(self.joint_encoders_data))
 				#print('Read limit switch values {}'.format(self.limit_data))
+		except:
+			print('We had a timeout (probably)?')
 		return
 
 	def tcp_close(self):
