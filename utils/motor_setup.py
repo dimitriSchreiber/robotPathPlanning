@@ -6,6 +6,8 @@ from copy import deepcopy
 import signal
 import sys
 import os
+from scipy.interpolate import CubicSpline
+
 
 from .tcp_class import tcp_communication
 import matplotlib.pyplot as plt
@@ -137,6 +139,7 @@ class Motors():
 	def run_trajectory(self, setpoints, velocity):
 		if (setpoints.all() > self.maxPosition[0]) and (setpoints.all() < self.maxPosition[1]) and velocity.all() < self.maxVelocity:
 			trajectory1, _ = self.trajPlanner.createTrajectoryMaxVelocity(self.get_motors_position_radians(), setpoints, self.maxVelocity, self.dt)
+			#rajectory1 = self.trajPlanner.createTrajectoryNumPoints(self.get_motors_position_radians(), setpoints, 50
 			for i in range(trajectory1.shape[1]):
 			    setpoint = list(trajectory1[:,i])
 			    self.command_motors_radians((trajectory1[:,i]))
@@ -186,7 +189,7 @@ class trajectoryGenerator:
     
     def createTrajectoryNumPoints(self, startPoints, endPoints, num_points):
         
-        startPoints = np.array(startPoints)
+        '''startPoints = np.array(startPoints)
         endPoints = np.array(endPoints)
         
         #Create smooth function with cubic spline
@@ -206,9 +209,23 @@ class trajectoryGenerator:
             for i in range(0, numDim):
                 trajectory[i, :] = dist[i]*y + startPoints[i]
         else:
-            trajectory[0, :] = dist*y + startPoints
+            trajectory[0, :] = dist*y + startPoints'''
+        
+        
+        if num_points > 0:
+            x = np.array([0,num_points])
+            #print(x)
+
+            y = np.array([startPoints,endPoints])
+
+            f = CubicSpline(x, y, bc_type = 'clamped')
+
+            x_new = np.linspace(0, num_points, num=num_points, endpoint=True)
+            y_new = f(x_new)
+        else:
+            y_new = endPoints
             
-        return trajectory
+        return y_new
         
     def plotTrajectory(self, trajectory, time = None):
         for i in range(0, trajectory.shape[0]):

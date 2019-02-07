@@ -17,6 +17,7 @@ class VREP_Environement():
         #Initiate connection to server
         self.connectToServer()
 
+
     def connectToServer(self):
         self.clientID = vrep.simxStart('127.0.0.1', 19997, True, True, 500, 5)
         
@@ -77,13 +78,21 @@ class VREP_Robot():
         self.orientations = np.ones([self.num_poses,4]) #xyzw
         self.connection_type = connection_type
         self.clientID = None
-        
+        self.collisionHandle = None
+
         #Connection type for object grabbing/setting
         if self.connection_type == 'blocking':
             self.opmode = vrep.simx_opmode_blocking
         elif self.connection_type == 'nonblocking':
             self.opmode = vrep.simx_opmode_oneshot
-        
+    def getCollisionHandle(self, name):
+        returnCode, self.collision_handle = vrep.simxGetCollisionHandle(
+            self.clientID, name, vrep.simx_opmode_blocking)
+    def getCollisionState(self):
+        returnCode, state = vrep.simxReadCollision(
+            self.clientID, self.collision_handle, vrep.simx_opmode_streaming)
+        return state
+    
     def get_handles(self):
         self.handles = [vrep.simxGetObjectHandle(self.clientID,
             name, vrep.simx_opmode_blocking)[1] for name in self.handle_names]
