@@ -31,7 +31,7 @@ from utils.mouse3d import MouseClient
 #-----------------------------------------------------------
 #motor setup
 #-----------------------------------------------------------
-socket_ip = '192.168.0.104'
+socket_ip = '192.168.0.113'
 socket_port = 1125
 
 motors = maxonGearSmall()

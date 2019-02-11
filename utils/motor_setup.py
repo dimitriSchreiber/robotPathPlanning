@@ -189,7 +189,7 @@ class trajectoryGenerator:
     
     def createTrajectoryNumPoints(self, startPoints, endPoints, num_points):
         
-        '''startPoints = np.array(startPoints)
+        startPoints = np.array(startPoints)
         endPoints = np.array(endPoints)
         
         #Create smooth function with cubic spline
@@ -209,9 +209,9 @@ class trajectoryGenerator:
             for i in range(0, numDim):
                 trajectory[i, :] = dist[i]*y + startPoints[i]
         else:
-            trajectory[0, :] = dist*y + startPoints'''
+            trajectory[0, :] = dist*y + startPoints
         
-        
+       ''' 
         if num_points > 0:
             x = np.array([0,num_points])
             #print(x)
@@ -223,7 +223,7 @@ class trajectoryGenerator:
             x_new = np.linspace(0, num_points, num=num_points, endpoint=True)
             y_new = f(x_new)
         else:
-            y_new = endPoints
+            y_new = endPoints'''
             
         return y_new
         
