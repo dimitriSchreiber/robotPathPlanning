@@ -29,7 +29,7 @@ class VREP_Environement():
             print("In synchronous mode")
             vrep.simxSynchronous(self.clientID, True)
             dt = 0.001
-            vrep.simxSetFloatParameter(self.clientId,sim_floatparam_simulation_time_step,dt,opMode)
+            #vrep.simxSetFloatParameter(self.clientId,sim_floatparam_simulation_time_step,dt,opMode)
 
 
     def add_robot(self, robot_class):
