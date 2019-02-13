@@ -12,7 +12,7 @@ class configGenerator_VREP(object):
     def generate_sample(config = 2):
         # prepare training set
         joint_range_lower_limit = np.array([-7.500e-2, -4.500e-2, -9.000e+1, -5.200e+1, -5.020e+1, -5.200e+1, 0])
-        joint_range = np.array([1.500e0, 9.000e-2, 1.800e+2, 1.040e+2, 1.020e+2, 1.040e+2, 5.500e-2])
+        joint_range = np.array([1.500e-1, 9.000e-2, 1.800e+2, 1.040e+2, 1.020e+2, 1.040e+2, 5.500e-2])
         joint_range_upper_limit = joint_range_lower_limit + joint_range
         
         index_Pjoint = [0, 1]   # does not include insertion
