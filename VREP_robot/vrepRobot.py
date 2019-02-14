@@ -1,5 +1,6 @@
 import vrep
 import numpy as np
+import time
 
 class VREP_Environement():
     ''' This object defines a VREP environment '''
@@ -23,12 +24,13 @@ class VREP_Environement():
         
         if self.clientID != -1: # if we connected successfully
             print ('Connected to remote API server')
-            
+            time.sleep(1)
         #Setup synchronous mode or not
         if self.synchronous == True:
             print("In synchronous mode")
             vrep.simxSynchronous(self.clientID, True)
             dt = 0.001
+            time.sleep(1)
             #vrep.simxSetFloatParameter(self.clientId,sim_floatparam_simulation_time_step,dt,opMode)
 
 
@@ -88,9 +90,12 @@ class VREP_Robot():
     def getCollisionHandle(self, name):
         returnCode, self.collision_handle = vrep.simxGetCollisionHandle(
             self.clientID, name, vrep.simx_opmode_blocking)
-    def getCollisionState(self):
+    def getCollisionState(self, initialize = False):
+        if initialize:
+            returnCode, state = vrep.simxReadCollision(self.clientID, self.collision_handle, vrep.simx_opmode_streaming)
+            
         returnCode, state = vrep.simxReadCollision(
-            self.clientID, self.collision_handle, vrep.simx_opmode_streaming)
+            self.clientID, self.collision_handle, vrep.simx_opmode_buffer)
         return state
     
     def get_handles(self):
@@ -110,7 +115,7 @@ class VREP_Robot():
                 operationMode=self.opmode
                 )
     
-    def getJointPosition(self, object_name):
+    def getJointPosition(self, object_name, initialize = False):
         #object name is the handle for the joint
         
         if self.clientID == None:
@@ -120,7 +125,7 @@ class VREP_Robot():
                 self.clientID,
                 object_name,
                 operationMode=self.opmode
-                )
+                )    
         return joint_position
             
     def getJointMatrix(self, object_name):
@@ -190,7 +195,7 @@ class VREP_Robot():
                 operationMode = self.opmode
                 )
             
-    def getObjectPosition(self, object_name, relative2='parent'):
+    def getObjectPosition(self, object_name, relative2='parent',initialize=False):
         #Changes what it is relative to
         if relative2 == 'parent':
             relative_handle = vrep.sim_handle_parent
@@ -199,17 +204,24 @@ class VREP_Robot():
         
         if self.clientID == None:
             print("Robot not attached to VREP environment")
+        elif initialize:
+            cartesian_position = vrep.simxGetObjectPosition(
+                self.clientID,
+                object_name,
+                relative_handle,
+                vrep.simx_opmode_streaming
+                )
         else:
             cartesian_position = vrep.simxGetObjectPosition(
                 self.clientID,
                 object_name,
                 relative_handle,
-                operationMode = self.opmode
-                )
+                vrep.simx_opmode_buffer
+                )# !CHANGE OPMODE from operationMode=self.opmode
         return cartesian_position
     
     
-    def getObjectOrientation(self, object_name, relative2='parent'):
+    def getObjectOrientation(self, object_name, relative2='parent',initialize=False):
         #Changes what it is relative to
         if relative2 == 'parent':
             relative_handle = vrep.sim_handle_parent
@@ -218,17 +230,24 @@ class VREP_Robot():
             
         if self.clientID == None:
             print("Robot not attached to VREP environment")
+        elif initialize:
+            orientation = vrep.simxGetObjectOrientation(
+                self.clientID,
+                object_name,
+                relative_handle,
+                vrep.simx_opmode_streaming
+                )# !CHANGE OPMODE
         else:
             orientation = vrep.simxGetObjectOrientation(
                 self.clientID,
                 object_name,
                 relative_handle,
-                operationMode = self.opmode
-                )
+                vrep.simx_opmode_buffer
+                )# !CHANGE OPMODE from operationMode=self.opmode
         return orientation
     
     
-    def getObjectQuaternion(self, object_name, relative2='parent'):
+    def getObjectQuaternion(self, object_name, relative2='parent',initialize=False):
         #Changes what it is relative to
         if relative2 == 'parent':
             relative_handle = vrep.sim_handle_parent
@@ -237,13 +256,20 @@ class VREP_Robot():
             
         if self.clientID == None:
             print("Robot not attached to VREP environment")
+        elif initialize:
+            quaternion = vrep.simxGetObjectQuaternion(
+                self.clientID,
+                object_name,
+                relative_handle,
+                vrep.simx_opmode_streaming
+                )# !CHANGE OPMODE
         else:
             quaternion = vrep.simxGetObjectQuaternion(
                 self.clientID,
                 object_name,
                 relative_handle,
-                operationMode = self.opmode
-                )
+                vrep.simx_opmode_buffer
+                )# !CHANGE OPMODE from operationMode=self.opmode
         return quaternion
 
     def GetObjectGroupData(self, object_name, parameter): #does not work
