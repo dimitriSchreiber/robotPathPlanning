@@ -210,8 +210,7 @@ class trajectoryGenerator:
                 trajectory[i, :] = dist[i]*y + startPoints[i]
         else:
             trajectory[0, :] = dist*y + startPoints
-        
-       ''' 
+        ''' 
         if num_points > 0:
             x = np.array([0,num_points])
             #print(x)
@@ -225,7 +224,7 @@ class trajectoryGenerator:
         else:
             y_new = endPoints'''
             
-        return y_new
+        return trajectory
         
     def plotTrajectory(self, trajectory, time = None):
         for i in range(0, trajectory.shape[0]):
