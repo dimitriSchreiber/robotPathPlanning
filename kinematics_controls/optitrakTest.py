@@ -13,10 +13,10 @@ from utils.getRobotPose import getOptitrackPose
 print_trak_data = False
 print_cartesian = True
 
-server_ip = "192.168.0.105"
+server_ip = "192.168.0.104"
 multicastAddress = "239.255.42.99"
 
-joint_names = ['Base','RigidBody']
+joint_names = ['Base','Needle']
 ids = [0, 1]
 
 #Tracking class
