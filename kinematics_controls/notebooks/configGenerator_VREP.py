@@ -13,12 +13,16 @@ class configGenerator_VREP(object):
         # prepare training set
 #        joint_range_lower_limit = np.array([-2e-1, -4.500e-2, -9.000e+1, -5.200e+1, -5.020e+1, -5.200e+1, 0])
 #        joint_range = np.array([4e-1, 0.95e0, 1.800e+2, 1.040e+2, 1.020e+2, 1.040e+2, 5.500e-2])
-        joint_range_lower_limit = np.array([-1e-1, -4.500e-2, -9.000e+1, -5.200e+1, -5.020e+1, -5.200e+1, 0])*0.5
-        joint_range = np.array([2e-1, 0.95e0, 1.800e+2, 1.040e+2, 1.020e+2, 1.040e+2, 5.500e-2])*0.5
+
+        #units are radians for revolute joints: http://www.coppeliarobotics.com/helpFiles/en/jointDescription.htm
+        joint_range_lower_limit = np.array([-1e-1, -4.500e-2, -9.000e+1, -5.200e+1, -5.020e+1, -5.200e+1, 0])
+        joint_range_lower_limit[2:-1] = joint_range_lower_limit[2:-1] * np.pi/180
+        joint_range = np.array([2e-1, 0.95e0, 1.800e+2, 1.040e+2, 1.020e+2, 1.040e+2, 5.500e-2])
+        joint_range[2:-1] = joint_range[2:-1] * np.pi/180
         joint_range_upper_limit = joint_range_lower_limit + joint_range
         
-        index_Pjoint = [0, 1]   # does not include insertion
-        index_Sjoint = [2, 3, 4, 5]
+        print('joint lower limit\n', joint_range_lower_limit)
+        print('joint upper limit\n', joint_range_upper_limit)
         
         sample = (np.linspace(0,1,config)[:,None]*(joint_range_upper_limit
                                -joint_range_lower_limit)+joint_range_lower_limit)
