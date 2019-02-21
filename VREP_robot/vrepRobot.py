@@ -270,7 +270,7 @@ class VREP_Robot():
                 relative_handle,
                 vrep.simx_opmode_buffer
                 )# !CHANGE OPMODE from operationMode=self.opmode
-        return quaternion
+        return quaternion #(x, y, z, w)?
 
     def GetObjectGroupData(self, object_name, parameter): #does not work
         if self.clientID == None:
