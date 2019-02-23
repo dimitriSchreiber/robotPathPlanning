@@ -50,9 +50,12 @@ V_r = V*Rx'*Rz'*Ry';
 V_rm = V_r / 1e3;
 
 % translate
+% V_rm(:,1) = V_rm(:,1)-1.03;
+% V_rm(:,2) = V_rm(:,2)+0.8;
+% V_rm(:,3) = V_rm(:,3)-1.5;
 V_rm(:,1) = V_rm(:,1)-1.03;
-V_rm(:,2) = V_rm(:,2)+0.8;
-V_rm(:,3) = V_rm(:,3)-1.5;
+V_rm(:,2) = V_rm(:,2)+0.93;
+V_rm(:,3) = V_rm(:,3)-1;
 
 ptCloud = pointCloud(V_rm);
 
