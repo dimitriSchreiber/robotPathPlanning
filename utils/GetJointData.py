@@ -26,7 +26,7 @@ class data():
         self.timestamp = joint_data[1]
         #Loops over the number of rigid bodies in the scene
         for i in range(len(joint_data[0])):
-            print('list index: {}, joint_data: {}'.format(i, joint_data[0][i][1]))
+            #print('list index: {}, joint_data: {}'.format(i, joint_data[0][i][1]))
             self.bodies[joint_data[0][i][0]].position = joint_data[0][i][1]
             self.bodies[joint_data[0][i][0]].orientation = np.array(joint_data[0][i][2])[[3,0,1,2]] #reorders oreintation to (qw, qx, qy, qz)
             self.bodies[joint_data[0][i][0]].rotation_mat = tf3d.quaternions.quat2mat(self.bodies[joint_data[0][i][0]].orientation)
