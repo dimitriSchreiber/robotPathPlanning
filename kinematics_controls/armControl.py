@@ -119,7 +119,7 @@ class remoteRobotArm():
         self.updateMotorArmMixing()
         
         axis_motor_indexes = np.array([5, 4, 6, 0, 3, 2, 1]) #6 might be wrong 
-        velocity = np.ones(8)*np.pi/2
+        velocity = np.ones(8)*np.pi/3
         
         setpoint_motor = np.zeros(8)
         setpoint_motor[axis_motor_indexes[0:7]] = self.motorAngleSetpoint[0:7]
