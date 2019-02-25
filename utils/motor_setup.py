@@ -138,7 +138,7 @@ class Motors():
 
 	def run_trajectory(self, setpoints, velocity):
 		if (setpoints.all() > self.maxPosition[0]) and (setpoints.all() < self.maxPosition[1]) and velocity.all() < self.maxVelocity:
-			trajectory1, _ = self.trajPlanner.createTrajectoryMaxVelocity(self.get_motors_position_radians(), setpoints, self.maxVelocity, self.dt)
+			trajectory1, _ = self.trajPlanner.createTrajectoryMaxVelocity(self.get_motors_position_radians(), setpoints, velocity, self.dt)
 			#rajectory1 = self.trajPlanner.createTrajectoryNumPoints(self.get_motors_position_radians(), setpoints, 50
 			for i in range(trajectory1.shape[1]):
 			    setpoint = list(trajectory1[:,i])

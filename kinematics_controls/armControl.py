@@ -28,8 +28,8 @@ class remoteRobotArm():
         self.endEffectorCurrent = np.zeros((2,3)) #fromOptitrack
         self.endEffectorSetpoint = np.zeros((2,3)) #input
         self.endEffectorError = np.zeros((2,3))
-        self.jointUpperLimits = np.array([82.5,42.5,1.75,0.872,0.872,0.872,0.0475])
-        self.jointLowerLimits = np.array([-82.5,-42.5,-1.75,-0.872,-0.872,-0.872,0])
+        self.jointUpperLimits = np.array([82,42,1.75,0.872,0.872,0.872,0.0475])
+        self.jointLowerLimits = np.array([-82,-42,-1.75,-0.872,-0.872,-0.872,0])
         
         self.initMotorArmMixing()
 
@@ -119,7 +119,7 @@ class remoteRobotArm():
         self.updateMotorArmMixing()
         
         axis_motor_indexes = np.array([5, 4, 6, 0, 3, 2, 1]) #6 might be wrong 
-        velocity = np.ones(8)*np.pi/8
+        velocity = np.ones(8)*np.pi/3
         
         setpoint_motor = np.zeros(8)
         setpoint_motor[axis_motor_indexes[0:7]] = self.motorAngleSetpoint[0:7]
