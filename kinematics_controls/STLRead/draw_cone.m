@@ -34,9 +34,12 @@ V_rm = V_r / 1e3;
 % V_rm(:,1) = V_rm(:,1)-1.03;
 % V_rm(:,2) = V_rm(:,2)+0.8;
 % V_rm(:,3) = V_rm(:,3)-1.5;
+% V_rm(:,1) = V_rm(:,1)-1.03;
+% V_rm(:,2) = V_rm(:,2)+0.93;
+% V_rm(:,3) = V_rm(:,3)-1;
 V_rm(:,1) = V_rm(:,1)-1.03;
-V_rm(:,2) = V_rm(:,2)+0.93;
-V_rm(:,3) = V_rm(:,3)-1;
+V_rm(:,2) = V_rm(:,2)+0.6; % change y pos
+V_rm(:,3) = V_rm(:,3)-1;% change z pos
 
 ptCloud = pointCloud(V_rm);
 
@@ -81,8 +84,8 @@ Cone(X1,X2,R,n,cyl_color,closed,lines)
 
 hold off
 
-saveas(fig,'heatmap_with_cone.fig')
-saveas(fig,'heatmap_with_cone.png')
+% saveas(fig,'heatmap_with_cone.fig')
+% saveas(fig,'heatmap_with_cone.png')
 % cone 3
 % X1=[0 0.43 -0.18];
 % X2=[0 0.53 -0.05];

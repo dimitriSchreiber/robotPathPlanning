@@ -56,7 +56,7 @@ V_rm = V_r / 1e3;
 % V_rm(:,1) = V_rm(:,1)-1.03;
 % V_rm(:,2) = V_rm(:,2)+0.93;
 % V_rm(:,3) = V_rm(:,3)-1;
-V_rm(:,1) = V_rm(:,1)-1.13;
+V_rm(:,1) = V_rm(:,1)-1.03;
 V_rm(:,2) = V_rm(:,2)+0.6; % change y pos
 V_rm(:,3) = V_rm(:,3)-1;% change z pos
 
@@ -98,8 +98,8 @@ colorbar('Ticks',[0,0.25,0.5,0.75,1],...
 %          'TickLabels',{'low dexterity','high dexterity'})
 axis equal
 
-saveas(fig,'heatmap_with_colorbar_2.fig')
-saveas(fig,'heatmap_with_colorbar.png')
+% saveas(fig,'heatmap_with_colorbar_2.fig')
+% saveas(fig,'heatmap_with_colorbar.png')
 
 % Save ply file
 plywrite('TorsoHotmap_colorbar.ply',fv.faces,V_rm, uint8(colormap_new*255))
